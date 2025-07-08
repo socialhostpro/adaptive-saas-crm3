@@ -25,3 +25,7 @@ Thumbs.db
 
 tailwindcss.exe
 
+# Ignore build output and sensitive/test files
+test-sendgrid-direct.js
+test-specific-email.js
+
