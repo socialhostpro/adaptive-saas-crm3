@@ -8,6 +8,8 @@ RUN npm run build
 # Use a lightweight image to serve static files
 FROM node:20-alpine AS prod
 WORKDIR /app
+# Install serve and its dependencies
+RUN apk add --no-cache nodejs npm
 RUN npm install -g serve
 COPY --from=build /app/dist ./dist
 EXPOSE 8080
