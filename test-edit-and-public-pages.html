@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Edit Invoices/Estimates and Public Pages</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        .status.working { background: #d4edda; color: #155724; }
+        .status.issue { background: #f8d7da; color: #721c24; }
+        .status.pending { background: #fff3cd; color: #856404; }
+        code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .checklist {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .checklist li {
+            margin: 8px 0;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .checklist li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Invoice/Estimate Editing & Public Pages Test</h1>
+    
+    <div class="test-section">
+        <h3>📝 Edit Functionality Status</h3>
+        <div class="status working">COMPLETED</div>
+        <p><strong>What was implemented:</strong></p>
+        <ul class="checklist">
+            <li><code>EditInvoiceModal</code> component imported and integrated</li>
+            <li>State variables added: <code>isEditInvoiceOpen</code>, <code>selectedInvoiceForEdit</code></li>
+            <li><code>handleUpdateInvoice</code> function created to update invoices via Supabase</li>
+            <li>Edit button added to invoice table in <code>InvoiceBilling.tsx</code></li>
+            <li>Modal renders with contacts prop and proper form handlers</li>
+            <li>Estimate editing was already working (has Edit button and modal)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>📄 Public Pages Line Items Status</h3>
+        <div class="status working">ALREADY WORKING</div>
+        <p><strong>Current status:</strong></p>
+        <ul class="checklist">
+            <li><code>PublicInvoicePage.tsx</code> - Line items table already present (lines 87-96)</li>
+            <li><code>PublicEstimatePage.tsx</code> - Line items table already present (lines 95-104)</li>
+            <li>Both pages show: Description, Qty, Unit Price, Amount columns</li>
+            <li>Both pages calculate totals correctly from line items</li>
+            <li>Routes are properly configured in <code>App.tsx</code></li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🔗 Public Page Access</h3>
+        <p><strong>URLs for testing:</strong></p>
+        <ul>
+            <li>Invoice: <code>http://localhost:5174/#/public/invoice/{invoiceId}</code></li>
+            <li>Estimate: <code>http://localhost:5174/#/public/estimate/{estimateId}</code></li>
+        </ul>
+        <p><strong>Note:</strong> You can get the share links by clicking the share button in the billing table.</p>
+    </div>
+
+    <div class="test-section">
+        <h3>🛠️ How to Test Edit Functionality</h3>
+        <ol>
+            <li>Navigate to the Billing page in the app</li>
+            <li>Go to the "Invoices" tab</li>
+            <li>Click the "Edit" button next to any invoice</li>
+            <li>The <code>EditInvoiceModal</code> should open</li>
+            <li>Make changes and save</li>
+            <li>Changes should persist and update the table</li>
+            <li>Same process works for estimates (already implemented)</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Data Flow</h3>
+        <p><strong>Edit Process:</strong></p>
+        <ol>
+            <li>User clicks "Edit" button</li>
+            <li><code>setSelectedInvoiceForEdit(invoice)</code> sets the invoice</li>
+            <li><code>setEditInvoiceOpen(true)</code> opens the modal</li>
+            <li>User edits form in <code>EditInvoiceModal</code></li>
+            <li>Modal calls <code>handleUpdateInvoice</code> with updated data</li>
+            <li>Supabase updates the database</li>
+            <li>Local state updates with new data</li>
+            <li>Table re-renders with updated invoice</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>✅ Summary</h3>
+        <p><strong>All requested features are now implemented:</strong></p>
+        <ul class="checklist">
+            <li>✅ Edit functionality for invoices (added)</li>
+            <li>✅ Edit functionality for estimates (was already working)</li>
+            <li>✅ Public invoice pages show line items (was already working)</li>
+            <li>✅ Public estimate pages show line items (was already working)</li>
+            <li>✅ Clickable invoice/estimate numbers (was already working)</li>
+            <li>✅ Email modals for sending invoices/estimates (was already working)</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('Test page loaded successfully');
+        console.log('Check the main app at http://localhost:5174 to test the edit functionality');
+    </script>
+</body>
+</html>

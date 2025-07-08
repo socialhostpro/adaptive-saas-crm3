@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Supabase Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        .error { color: #dc3545; }
+        .success { color: #28a745; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Supabase Connection Test</h1>
+    
+    <button onclick="testDirectSupabase()">Test Direct Supabase Connection</button>
+    <div id="output" class="output">Click the button to test Supabase connection...</div>
+
+    <script type="module">
+        // Import Supabase directly without going through the store
+        import { createClient } from '@supabase/supabase-js';
+
+        // Get environment variables (these should be available in Vite)
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        console.log('Environment check:', {
+            url: SUPABASE_URL,
+            key: SUPABASE_ANON_KEY ? 'present' : 'missing'
+        });
+
+        // Create Supabase client
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.testDirectSupabase = async function() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Testing direct Supabase connection...\n';
+            output.className = 'output';
+
+            try {
+                // Test basic connection
+                output.innerHTML += 'Creating Supabase client...\n';
+                output.innerHTML += `URL: ${SUPABASE_URL}\n`;
+                output.innerHTML += `Key: ${SUPABASE_ANON_KEY ? 'present' : 'missing'}\n\n`;
+
+                // Try a simple query
+                output.innerHTML += 'Attempting to query database...\n';
+                const { data, error } = await supabase
+                    .from('leads')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    output.innerHTML += `❌ Database Error: ${error.message}\n`;
+                    output.innerHTML += `Error Details: ${JSON.stringify(error, null, 2)}\n`;
+                    output.className = 'output error';
+                } else {
+                    output.innerHTML += `✅ Success! Database connection working.\n`;
+                    output.innerHTML += `Response: ${JSON.stringify(data, null, 2)}\n`;
+                    output.className = 'output success';
+                }
+
+                // Test auth status
+                output.innerHTML += '\nChecking auth status...\n';
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                
+                if (authError) {
+                    output.innerHTML += `Auth check failed: ${authError.message}\n`;
+                } else {
+                    output.innerHTML += `Auth status: ${user ? 'authenticated' : 'anonymous'}\n`;
+                }
+
+            } catch (err) {
+                output.innerHTML += `❌ Unexpected Error: ${err.message}\n`;
+                output.innerHTML += `Stack: ${err.stack}\n`;
+                output.className = 'output error';
+                console.error('Full error:', err);
+            }
+        };
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            setTimeout(testDirectSupabase, 1000);
+        });
+    </script>
+</body>
+</html>

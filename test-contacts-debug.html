@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Contacts Page</title>
+</head>
+<body>
+    <div id="test-contacts-root"></div>
+    
+    <script type="module">
+        import { createRoot } from 'react-dom/client';
+        import React from 'react';
+
+        // Test component to check contacts rendering
+        function TestContacts() {
+            const [error, setError] = React.useState(null);
+            
+            React.useEffect(() => {
+                // Test if we can import and render contacts
+                import('./components/Contacts').then(({ default: Contacts }) => {
+                    try {
+                        console.log('Contacts component loaded successfully');
+                        // Create a wrapped version with mock data
+                        const WrappedContacts = () => {
+                            return React.createElement('div', {
+                                style: { 
+                                    padding: '20px',
+                                    backgroundColor: '#f5f5f5',
+                                    minHeight: '100vh'
+                                }
+                            }, [
+                                React.createElement('h1', { key: 'title' }, 'Testing Contacts Component'),
+                                React.createElement('div', { 
+                                    key: 'status',
+                                    style: { 
+                                        padding: '10px',
+                                        backgroundColor: 'white',
+                                        border: '1px solid #ccc',
+                                        marginBottom: '20px'
+                                    }
+                                }, 'Contacts component loaded. Check console for any errors.'),
+                                React.createElement(Contacts, { key: 'contacts' })
+                            ]);
+                        };
+                        
+                        const root = createRoot(document.getElementById('test-contacts-root'));
+                        root.render(React.createElement(WrappedContacts));
+                    } catch (err) {
+                        console.error('Error rendering Contacts:', err);
+                        setError(err.message);
+                    }
+                }).catch(err => {
+                    console.error('Error importing Contacts:', err);
+                    setError(err.message);
+                });
+            }, []);
+            
+            if (error) {
+                return React.createElement('div', {
+                    style: { 
+                        color: 'red',
+                        padding: '20px',
+                        backgroundColor: '#ffe6e6',
+                        border: '1px solid red'
+                    }
+                }, `Error: ${error}`);
+            }
+            
+            return React.createElement('div', {
+                style: { padding: '20px' }
+            }, 'Loading Contacts component...');
+        }
+        
+        const root = createRoot(document.getElementById('test-contacts-root'));
+        root.render(React.createElement(TestContacts));
+    </script>
+</body>
+</html>

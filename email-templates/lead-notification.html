@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Lead Notification</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px;
+            line-height: 1.6;
+        }
+        .alert-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .lead-details {
+            background-color: #f8f9fa;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .lead-details h3 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #495057;
+            min-width: 120px;
+        }
+        .detail-value {
+            color: #333;
+            flex: 1;
+            text-align: right;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .priority-high {
+            background-color: #dc3545;
+            color: white;
+        }
+        .priority-medium {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .priority-low {
+            background-color: #28a745;
+            color: white;
+        }
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 8px 8px;
+        }
+        .footer p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #28a745;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            .container {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+            .header, .content, .footer {
+                padding: 20px !important;
+            }
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .detail-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">🎯</div>
+            <h1>New Lead Notification</h1>
+        </div>
+        
+        <div class="content">
+            <div class="alert-box">
+                <strong>⚡ Action Required:</strong> A new lead has been captured and requires your attention!
+            </div>
+            
+            <p>Hello {{assigned_to}},</p>
+            
+            <p>A new lead has been automatically captured in your {{company_name}} CRM system. Here are the details:</p>
+            
+            <div class="lead-details">
+                <h3>🔍 Lead Information</h3>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">{{lead_name}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">{{lead_email}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Phone:</span>
+                    <span class="detail-value">{{lead_phone}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Company:</span>
+                    <span class="detail-value">{{lead_company}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Source:</span>
+                    <span class="detail-value">{{lead_source}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Priority:</span>
+                    <span class="detail-value">
+                        <span class="priority-badge priority-{{lead_priority}}">{{lead_priority}} Priority</span>
+                    </span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Captured:</span>
+                    <span class="detail-value">{{lead_date}}</span>
+                </div>
+            </div>
+            
+            <div class="lead-details">
+                <h3>💬 Lead Message</h3>
+                <p style="margin: 0; font-style: italic; color: #495057;">
+                    "{{lead_message}}"
+                </p>
+            </div>
+            
+            <p>📋 <strong>Recommended Next Steps:</strong></p>
+            <ul>
+                <li>Review the lead details in your CRM dashboard</li>
+                <li>Contact the lead within 24 hours for best conversion rates</li>
+                <li>Update the lead status after your initial contact</li>
+                <li>Schedule a follow-up if appropriate</li>
+            </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{crm_dashboard_url}}" class="cta-button">View Lead in CRM</a>
+            </div>
+            
+            <p><strong>Quick Actions:</strong></p>
+            <p>
+                📧 <a href="mailto:{{lead_email}}">Send Email</a> | 
+                📞 <a href="tel:{{lead_phone}}">Call Now</a> | 
+                📝 <a href="{{lead_notes_url}}">Add Notes</a>
+            </p>
+            
+            <p>This lead has been automatically assigned to you based on your territory and availability. If you need to reassign this lead, please update it in your CRM dashboard.</p>
+            
+            <p>Best of luck with your new lead!</p>
+            
+            <p>Best regards,<br>
+            {{company_name}} CRM System</p>
+        </div>
+        
+        <div class="footer">
+            <p>{{company_name}} | Automated Lead Notification System</p>
+            <p>
+                <a href="{{crm_dashboard_url}}">CRM Dashboard</a> | 
+                <a href="{{notification_settings_url}}">Notification Settings</a> | 
+                <a href="{{support_url}}">Support</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Pages Header/Footer Update Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        .status.completed { background: #d4edda; color: #155724; }
+        .status.removed { background: #f8d7da; color: #721c24; }
+        .status.added { background: #d1ecf1; color: #0c5460; }
+        code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .checklist {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .checklist li {
+            margin: 8px 0;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .checklist li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+        .before {
+            background: #fff5f5;
+            border-color: #f56565;
+        }
+        .after {
+            background: #f0fff4;
+            border-color: #48bb78;
+        }
+        .mockup {
+            background: #f7fafc;
+            border: 1px dashed #cbd5e0;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 12px;
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Public Pages Header/Footer Update</h1>
+    
+    <div class="test-section">
+        <h3>📋 Changes Summary</h3>
+        <div class="status completed">COMPLETED</div>
+        <p><strong>Successfully updated both public pages:</strong></p>
+        <ul class="checklist">
+            <li>Removed SaaS logo and text from top header on both pages</li>
+            <li>Added "Powered by Imagine Capital AI" footer with logo on both pages</li>
+            <li>Clean, professional appearance for client-facing documents</li>
+            <li>Footer hidden on print (no-print class)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🔄 Before vs After</h3>
+        
+        <div class="before-after">
+            <div class="before">
+                <h4>❌ BEFORE</h4>
+                <div class="mockup">
+                    [SaaS Logo] Adaptive Solutions LLC<br>
+                    ────────────────────────────
+                </div>
+                <p><strong>Invoice/Estimate Content</strong></p>
+                <div class="mockup">
+                    [End of document]
+                </div>
+            </div>
+            
+            <div class="after">
+                <h4>✅ AFTER</h4>
+                <div class="mockup">
+                    ────────────────────────────<br>
+                    (No header - clean start)
+                </div>
+                <p><strong>Invoice/Estimate Content</strong></p>
+                <div class="mockup">
+                    Powered by [⚡] Imagine Capital AI
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>📄 Updated Files</h3>
+        <ul class="checklist">
+            <li><code>PublicInvoicePage.tsx</code> - Removed PublicHeader, added footer</li>
+            <li><code>PublicEstimatePage.tsx</code> - Removed PublicHeader, added footer</li>
+        </ul>
+        
+        <h4>🗑️ Removed Components:</h4>
+        <div class="status removed">REMOVED</div>
+        <ul>
+            <li><code>PublicHeader</code> import and usage</li>
+            <li>Company logo display at top</li>
+            <li>Company name header text</li>
+        </ul>
+        
+        <h4>➕ Added Components:</h4>
+        <div class="status added">ADDED</div>
+        <ul>
+            <li>Footer with "Powered by Imagine Capital AI"</li>
+            <li>Small SaaS logo icon in footer</li>
+            <li>Centered, professional styling</li>
+            <li>Print-hidden footer (no-print class)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Testing Instructions</h3>
+        <ol>
+            <li><strong>Navigate to the app:</strong> <code>http://localhost:5174</code></li>
+            <li><strong>Go to Billing page</strong></li>
+            <li><strong>Click on any invoice number</strong> (opens public invoice page)</li>
+            <li><strong>Verify:</strong>
+                <ul>
+                    <li>❌ No SaaS logo/text at top</li>
+                    <li>✅ "Powered by Imagine Capital AI" at bottom</li>
+                    <li>✅ Small logo icon in footer</li>
+                </ul>
+            </li>
+            <li><strong>Test estimate page</strong> the same way</li>
+            <li><strong>Test print preview</strong> - footer should be hidden</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>💡 Footer Design Details</h3>
+        <div class="mockup" style="text-align: center; padding: 20px; background: #f8f9fa;">
+            <div style="display: inline-flex; align-items: center; gap: 8px; color: #6b7280; font-size: 14px;">
+                <span>Powered by</span>
+                <div style="display: inline-flex; align-items: center; gap: 4px;">
+                    <div style="background: #6366f1; padding: 2px; border-radius: 2px; color: white; width: 16px; height: 16px; text-align: center;">⚡</div>
+                    <span style="font-weight: 600; color: #374151;">Imagine Capital AI</span>
+                </div>
+            </div>
+        </div>
+        
+        <ul class="checklist">
+            <li>Subtle gray text color</li>
+            <li>Small primary-colored logo icon</li>
+            <li>Professional, non-intrusive placement</li>
+            <li>Responsive design</li>
+            <li>Hidden when printing</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('Public pages updated successfully!');
+        console.log('- Removed: SaaS header from both pages');
+        console.log('- Added: "Powered by Imagine Capital AI" footer');
+        console.log('Test the public pages at: http://localhost:5174');
+    </script>
+</body>
+</html>

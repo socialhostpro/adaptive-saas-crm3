@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adaptive SaaS Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/react-grid-layout/1.4.4/css/styles.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/react-resizable/3.0.5/css/styles.min.css" />
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                '50': '#f0f9ff',
+                '100': '#e0f2fe',
+                '200': '#bae6fd',
+                '300': '#7dd3fc',
+                '400': '#38bdf8',
+                '500': '#0ea5e9',
+                '600': '#0284c7',
+                '700': '#0369a1',
+                '800': '#075985',
+                '900': '#0c4a6e',
+                '950': '#082f49'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        body, .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .react-grid-item.react-grid-placeholder {
+            background: #0ea5e9;
+            opacity: 0.2;
+            transition-duration: 100ms;
+            z-index: 2;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+            border-radius: 0.75rem;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background-color: white !important;
+                color: black !important;
+                font-size: 10pt;
+            }
+            .dark {
+                background-color: white !important;
+                color: black !important;
+            }
+            .dark *:not(path) {
+                background-color: white !important;
+                color: black !important;
+                border-color: #e5e7eb !important; /* light gray */
+            }
+            .dark .dark\:text-white, .dark .dark\:text-gray-200, .dark .dark\:text-gray-300, .dark .dark\:text-gray-400, .dark .dark\:text-primary-200, .dark .dark\:text-primary-300, .dark .dark\:text-primary-400, .dark .dark\:text-primary-500 {
+                color: black !important;
+            }
+            .dark .dark\:bg-gray-800, .dark .dark\:bg-gray-900, .dark .dark\:bg-gray-700, .dark .dark\:bg-primary-900\/50, .dark .dark\:bg-gray-800\/50, .dark .dark\:bg-gray-950 {
+                background-color: white !important;
+            }
+            .no-print, .no-print * {
+                display: none !important;
+            }
+            
+            main {
+                padding: 1rem !important;
+                margin: 0 !important;
+                overflow: visible !important;
+            }
+
+            .fixed.inset-0 {
+                position: relative !important;
+                background: none !important;
+                display: block !important;
+                padding: 0 !important;
+            }
+            .fixed.inset-0 > div {
+                position: static !important;
+                height: auto !important;
+                max-height: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                border: 1px solid #ddd !important;
+            }
+            .modal-content-wrapper {
+                overflow: visible !important;
+            }
+            .shadow-md, .shadow-lg {
+                box-shadow: none !important;
+            }
+            .react-grid-item {
+                page-break-inside: avoid;
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+            }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.6.3",
+    "@google/genai": "https://esm.sh/@google/genai@^1.7.0",
+    "react-grid-layout": "https://esm.sh/react-grid-layout@^1.5.2",
+    "recharts": "https://esm.sh/recharts@^3.0.2",
+    "react-markdown": "https://esm.sh/react-markdown@^10.1.0",
+    "remark-gfm": "https://esm.sh/remark-gfm@^4.0.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="antialiased font-sans">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Contacts Rendering</title>
+    <style>
+        body { margin: 20px; background: #f5f5f5; }
+        .debug { background: white; padding: 15px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; }
+        .error { background: #ffe6e6; border-color: #ff0000; }
+        .success { background: #e6ffe6; border-color: #00aa00; }
+    </style>
+</head>
+<body>
+    <h1>Contacts Component Debug</h1>
+    
+    <div class="debug">
+        <h3>Check 1: Global Store Import</h3>
+        <div id="global-store-check">Testing...</div>
+    </div>
+    
+    <div class="debug">
+        <h3>Check 2: Initial Data</h3>
+        <div id="initial-data-check">Testing...</div>
+    </div>
+    
+    <div class="debug">
+        <h3>Check 3: Component Import</h3>
+        <div id="component-import-check">Testing...</div>
+    </div>
+    
+    <div class="debug">
+        <h3>Check 4: Component Render Test</h3>
+        <div id="component-render-test">Testing...</div>
+    </div>
+    
+    <div class="debug">
+        <h3>Component Output:</h3>
+        <div id="contacts-component" style="min-height: 400px; border: 2px dashed #ccc;">
+            Component will render here...
+        </div>
+    </div>
+
+    <script type="module">
+        // Test 1: Global store
+        try {
+            const { useGlobalStore } = await import('./hooks/useGlobalStore.js');
+            document.getElementById('global-store-check').innerHTML = '<span style="color: green;">✓ Global store imported successfully</span>';
+        } catch (err) {
+            document.getElementById('global-store-check').innerHTML = `<span style="color: red;">✗ Error importing global store: ${err.message}</span>`;
+        }
+        
+        // Test 2: Initial data
+        try {
+            const { contacts } = await import('./data.js');
+            document.getElementById('initial-data-check').innerHTML = `<span style="color: green;">✓ Initial data loaded: ${contacts.length} contacts</span>`;
+        } catch (err) {
+            document.getElementById('initial-data-check').innerHTML = `<span style="color: red;">✗ Error loading initial data: ${err.message}</span>`;
+        }
+        
+        // Test 3: Component import
+        try {
+            const ContactsModule = await import('./components/Contacts.js');
+            const Contacts = ContactsModule.default;
+            document.getElementById('component-import-check').innerHTML = '<span style="color: green;">✓ Contacts component imported successfully</span>';
+            
+            // Test 4: Component render
+            try {
+                const React = await import('react');
+                const { createRoot } = await import('react-dom/client');
+                
+                // Mock useGlobalStore for testing
+                const mockContacts = [
+                    {
+                        id: '1',
+                        name: 'Test Contact',
+                        email: 'test@example.com',
+                        company: 'Test Company',
+                        phone: '123-456-7890',
+                        avatarUrl: 'https://picsum.photos/100',
+                        syncStatus: 'synced'
+                    }
+                ];
+                
+                // Create a test wrapper
+                function TestWrapper() {
+                    // Mock the global store hooks
+                    const mockStore = {
+                        userId: 'test-user-123',
+                        contacts: mockContacts,
+                        addContact: () => {},
+                        updateContact: () => {},
+                        removeContact: () => {},
+                        setContacts: () => {},
+                        activities: [],
+                        setActivities: () => {},
+                        tasks: [],
+                        opportunities: [],
+                        projects: [],
+                        cases: [],
+                        teamMembers: [],
+                        currentUser: null
+                    };
+                    
+                    return React.createElement('div', {
+                        style: { padding: '20px', backgroundColor: 'white' }
+                    }, [
+                        React.createElement('h3', { key: 'title' }, 'Mock Contacts Test'),
+                        React.createElement('p', { key: 'info' }, `Found ${mockContacts.length} contacts`),
+                        React.createElement('div', { 
+                            key: 'contact-list',
+                            style: { 
+                                border: '1px solid #ddd',
+                                padding: '10px',
+                                marginTop: '10px'
+                            }
+                        }, mockContacts.map(contact => 
+                            React.createElement('div', {
+                                key: contact.id,
+                                style: { 
+                                    padding: '8px',
+                                    borderBottom: '1px solid #eee'
+                                }
+                            }, `${contact.name} - ${contact.email}`)
+                        ))
+                    ]);
+                }
+                
+                const root = createRoot(document.getElementById('contacts-component'));
+                root.render(React.createElement(TestWrapper));
+                
+                document.getElementById('component-render-test').innerHTML = '<span style="color: green;">✓ Component rendering test completed</span>';
+                
+            } catch (renderErr) {
+                document.getElementById('component-render-test').innerHTML = `<span style="color: red;">✗ Error rendering component: ${renderErr.message}</span>`;
+                console.error('Render error:', renderErr);
+            }
+            
+        } catch (err) {
+            document.getElementById('component-import-check').innerHTML = `<span style="color: red;">✗ Error importing Contacts component: ${err.message}</span>`;
+            document.getElementById('component-render-test').innerHTML = '<span style="color: gray;">Skipped (component import failed)</span>';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Supabase Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+        }
+        .button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .button:hover { background: #0052a3; }
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .error { color: #dc3545; background-color: #f8d7da; }
+        .success { color: #155724; background-color: #d4edda; }
+        .warning { color: #856404; background-color: #fff3cd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fixed Supabase Integration Test</h1>
+        
+        <div class="test-section">
+            <h3>1. Environment Check</h3>
+            <button class="button" onclick="checkEnvironment()">Check Environment Variables</button>
+            <div id="env-output" class="output">Click to check environment...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Supabase Client Test</h3>
+            <button class="button" onclick="testSupabaseClient()">Test Supabase Connection</button>
+            <div id="supabase-output" class="output">Click to test connection...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Store Integration Test</h3>
+            <button class="button" onclick="testStoreIntegration()">Test Store Integration</button>
+            <div id="store-output" class="output">Click to test store...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Database Operations Test</h3>
+            <button class="button" onclick="testDatabaseOperations()">Test Database Operations</button>
+            <div id="db-output" class="output">Click to test database operations...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Test the modular approach
+        import { supabase } from './lib/supabase.ts';
+        import useAppStore from './hooks/useAppStore.ts';
+
+        // Make available globally for button handlers
+        window.supabase = supabase;
+        window.useAppStore = useAppStore;
+
+        window.checkEnvironment = function() {
+            const output = document.getElementById('env-output');
+            output.innerHTML = 'Checking environment variables...\n';
+            
+            const envVars = {
+                VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+                VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
+            };
+            
+            output.innerHTML += `Environment Variables:\n`;
+            output.innerHTML += `VITE_SUPABASE_URL: ${envVars.VITE_SUPABASE_URL ? '✅ Present' : '❌ Missing'}\n`;
+            output.innerHTML += `VITE_SUPABASE_ANON_KEY: ${envVars.VITE_SUPABASE_ANON_KEY ? '✅ Present' : '❌ Missing'}\n\n`;
+            
+            if (envVars.VITE_SUPABASE_URL && envVars.VITE_SUPABASE_ANON_KEY) {
+                output.innerHTML += `✅ All environment variables are properly configured!\n`;
+                output.className = 'output success';
+            } else {
+                output.innerHTML += `❌ Missing required environment variables!\n`;
+                output.className = 'output error';
+            }
+        };
+
+        window.testSupabaseClient = async function() {
+            const output = document.getElementById('supabase-output');
+            output.innerHTML = 'Testing Supabase client...\n';
+            output.className = 'output';
+            
+            try {
+                // Test 1: Client creation
+                output.innerHTML += 'Step 1: Client initialization - ✅\n';
+                
+                // Test 2: Basic connection
+                output.innerHTML += 'Step 2: Testing basic connection...\n';
+                const { data, error } = await supabase.from('leads').select('count').limit(1);
+                
+                if (error) {
+                    output.innerHTML += `❌ Connection failed: ${error.message}\n`;
+                    output.innerHTML += `Error code: ${error.code || 'N/A'}\n`;
+                    output.innerHTML += `Hint: ${error.hint || 'Check your database setup'}\n`;
+                    output.className = 'output error';
+                } else {
+                    output.innerHTML += `✅ Connection successful!\n`;
+                    output.innerHTML += `Response: ${JSON.stringify(data, null, 2)}\n`;
+                    output.className = 'output success';
+                }
+                
+                // Test 3: Auth status
+                output.innerHTML += '\nStep 3: Checking auth status...\n';
+                const { data: { user } } = await supabase.auth.getUser();
+                output.innerHTML += `Auth status: ${user ? 'Authenticated' : 'Anonymous'}\n`;
+                
+            } catch (err) {
+                output.innerHTML += `❌ Unexpected error: ${err.message}\n`;
+                output.innerHTML += `Stack: ${err.stack}\n`;
+                output.className = 'output error';
+                console.error('Supabase test error:', err);
+            }
+        };
+
+        window.testStoreIntegration = function() {
+            const output = document.getElementById('store-output');
+            output.innerHTML = 'Testing store integration...\n';
+            
+            try {
+                // Test Zustand store
+                const state = useAppStore.getState();
+                output.innerHTML += `✅ Store accessible\n`;
+                output.innerHTML += `Available state keys: ${Object.keys(state).join(', ')}\n`;
+                
+                // Test store update
+                useAppStore.setState({ testKey: 'Integration test value' });
+                const updatedState = useAppStore.getState();
+                output.innerHTML += `✅ Store update successful\n`;
+                output.innerHTML += `Test value: ${updatedState.testKey}\n`;
+                
+                output.className = 'output success';
+            } catch (err) {
+                output.innerHTML += `❌ Store integration failed: ${err.message}\n`;
+                output.className = 'output error';
+            }
+        };
+
+        window.testDatabaseOperations = async function() {
+            const output = document.getElementById('db-output');
+            output.innerHTML = 'Testing database operations...\n';
+            output.className = 'output';
+            
+            try {
+                // Test different table operations
+                const tables = ['leads', 'contacts', 'opportunities'];
+                
+                for (const table of tables) {
+                    output.innerHTML += `Testing table '${table}'...\n`;
+                    
+                    const { data, error } = await supabase
+                        .from(table)
+                        .select('*')
+                        .limit(1);
+                    
+                    if (error) {
+                        output.innerHTML += `  ⚠️ Table '${table}': ${error.message}\n`;
+                    } else {
+                        output.innerHTML += `  ✅ Table '${table}': ${data.length} records found\n`;
+                    }
+                }
+                
+                output.innerHTML += '\n✅ Database operations test completed!\n';
+                output.className = 'output success';
+                
+            } catch (err) {
+                output.innerHTML += `❌ Database operations failed: ${err.message}\n`;
+                output.className = 'output error';
+            }
+        };
+
+        // Auto-run environment check on load
+        window.addEventListener('load', () => {
+            setTimeout(checkEnvironment, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "Adaptive SaaS CRM",
+  "description": "A versatile SaaS platform that combines CRM, project management, and billing functionalities. This UI showcases the core features of the Customer Relationship Management module.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "prompt": ""
+}

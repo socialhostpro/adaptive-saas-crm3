@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Store Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0052a3;
+        }
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .success {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>Supabase Store Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Supabase Connection Test</h2>
+        <button class="button" onclick="testSupabaseConnection()">Test Supabase Connection</button>
+        <div id="supabase-output" class="output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Zustand Store Test</h2>
+        <button class="button" onclick="testZustandStore()">Test Zustand Store</button>
+        <div id="zustand-output" class="output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Realtime Subscription Test</h2>
+        <button class="button" onclick="testRealtimeSubscription()">Test Realtime</button>
+        <div id="realtime-output" class="output"></div>
+    </div>
+
+    <script type="module">
+        import useAppStore, { supabase } from './hooks/useAppStore.ts';
+
+        // Make functions globally available
+        window.useAppStore = useAppStore;
+        window.supabase = supabase;
+
+        window.testSupabaseConnection = async function() {
+            const output = document.getElementById('supabase-output');
+            output.innerHTML = 'Testing Supabase connection...\n';
+            
+            try {
+                // First test basic connection
+                const { data, error } = await supabase.from('leads').select('count').limit(1);
+                
+                if (error) {
+                    output.innerHTML += `❌ Error: ${error.message}\n`;
+                    output.innerHTML += `Details: ${JSON.stringify(error, null, 2)}\n`;
+                    output.className = 'output error';
+                } else {
+                    output.innerHTML += `✅ Successfully connected to Supabase!\n`;
+                    output.innerHTML += `Response: ${JSON.stringify(data, null, 2)}\n`;
+                    output.className = 'output success';
+                }
+            } catch (err) {
+                output.innerHTML += `❌ Unexpected error: ${err.message}\n`;
+                output.className = 'output error';
+            }
+        };
+
+        window.testZustandStore = function() {
+            const output = document.getElementById('zustand-output');
+            output.innerHTML = 'Testing Zustand store...\n';
+            
+            try {
+                const initialState = useAppStore.getState();
+                output.innerHTML += `Initial state keys: ${Object.keys(initialState).join(', ')}\n`;
+                
+                // Test state update
+                useAppStore.setState({ testKey: 'testValue' });
+                const updatedState = useAppStore.getState();
+                
+                output.innerHTML += `✅ Successfully updated store!\n`;
+                output.innerHTML += `Test key value: ${updatedState.testKey}\n`;
+                output.className = 'output success';
+            } catch (err) {
+                output.innerHTML += `❌ Error: ${err.message}\n`;
+                output.className = 'output error';
+            }
+        };
+
+        window.testRealtimeSubscription = function() {
+            const output = document.getElementById('realtime-output');
+            output.innerHTML = 'Setting up realtime subscription...\n';
+            
+            try {
+                const subscription = supabase
+                    .channel('test_channel')
+                    .on('postgres_changes', { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'leads' 
+                    }, (payload) => {
+                        output.innerHTML += `📡 Realtime event received: ${JSON.stringify(payload, null, 2)}\n`;
+                    })
+                    .subscribe((status) => {
+                        output.innerHTML += `📡 Subscription status: ${status}\n`;
+                        if (status === 'SUBSCRIBED') {
+                            output.innerHTML += `✅ Successfully subscribed to realtime updates!\n`;
+                            output.innerHTML += `Try adding a lead in another tab to see realtime updates.\n`;
+                            output.className = 'output success';
+                        }
+                    });
+
+                if (!subscription) {
+                    throw new Error('Failed to initialize realtime subscription.');
+                }
+                
+                output.innerHTML += `🔄 Realtime subscription initialized...\n`;
+            } catch (err) {
+                output.innerHTML += `❌ Error: ${err.message}\n`;
+                output.className = 'output error';
+            }
+        };
+
+        // Auto-run basic tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testSupabaseConnection();
+                testZustandStore();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

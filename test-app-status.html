@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Status Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root">
+        <div class="min-h-screen bg-gray-50 p-8">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-3xl font-bold text-gray-900 mb-8">CRM Application Status</h1>
+                
+                <!-- Server Status -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Server Status</h2>
+                    <div id="server-status" class="space-y-2">
+                        <p class="text-gray-600">Checking server status...</p>
+                    </div>
+                </div>
+
+                <!-- Module Loading Status -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Module Loading Status</h2>
+                    <div id="module-status" class="space-y-2">
+                        <p class="text-gray-600">Testing module imports...</p>
+                    </div>
+                </div>
+
+                <!-- Environment Variables -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Environment Variables</h2>
+                    <div id="env-status" class="space-y-2">
+                        <p class="text-gray-600">Checking environment configuration...</p>
+                    </div>
+                </div>
+
+                <!-- Action Items -->
+                <div class="bg-blue-50 rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-blue-800 mb-4">Next Steps</h2>
+                    <div class="space-y-2 text-blue-700">
+                        <p>✅ Vite configuration updated with Node.js polyfills</p>
+                        <p>✅ WebSocket overlay disabled for better stability</p>
+                        <p>✅ Buffer and process polyfills installed</p>
+                        <p>✅ Module compatibility fixes applied</p>
+                        <p>✅ Comprehensive SQL scripts created for Supabase setup</p>
+                        <br>
+                        <p class="font-semibold">Database Setup:</p>
+                        <p>1. Execute 01_schema.sql in Supabase SQL Editor</p>
+                        <p>2. Execute 02_seed.sql for sample data (optional)</p>
+                        <p>3. Execute 03_rls.sql for security policies</p>
+                        <p>4. Execute 04_indexes.sql for performance optimization</p>
+                        <br>
+                        <p class="font-semibold">Ready to test main application at: <a href="/" class="underline">http://localhost:5173/</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Test server connectivity
+        const serverStatus = document.getElementById('server-status');
+        const moduleStatus = document.getElementById('module-status');
+        const envStatus = document.getElementById('env-status');
+
+        // Check if server is responding
+        try {
+            fetch('/package.json')
+                .then(response => {
+                    if (response.ok) {
+                        serverStatus.innerHTML = '<p class="text-green-600 font-semibold">✅ Development server is running correctly</p>';
+                    } else {
+                        serverStatus.innerHTML = '<p class="text-yellow-600 font-semibold">⚠️ Server responding but some issues detected</p>';
+                    }
+                })
+                .catch(error => {
+                    serverStatus.innerHTML = '<p class="text-red-600 font-semibold">❌ Server connection failed</p>';
+                });
+        } catch (error) {
+            serverStatus.innerHTML = '<p class="text-red-600 font-semibold">❌ Server test failed</p>';
+        }
+
+        // Test module imports
+        const moduleTests = [];
+
+        Promise.all([
+            import('@supabase/supabase-js').then(() => '✅ Supabase').catch(() => '❌ Supabase'),
+            import('react').then(() => '✅ React').catch(() => '❌ React'),
+            import('react-dom').then(() => '✅ React DOM').catch(() => '❌ React DOM'),
+            import('react-grid-layout').then(() => '✅ React Grid Layout').catch(() => '❌ React Grid Layout'),
+            import('zustand').then(() => '✅ Zustand').catch(() => '❌ Zustand'),
+        ]).then(results => {
+            moduleStatus.innerHTML = results.map(result => 
+                `<p class="${result.startsWith('✅') ? 'text-green-600' : 'text-red-600'}">${result}</p>`
+            ).join('');
+        });
+
+        // Check environment variables
+        const envVars = [
+            { name: 'VITE_SUPABASE_URL', value: import.meta.env.VITE_SUPABASE_URL },
+            { name: 'VITE_SUPABASE_ANON_KEY', value: import.meta.env.VITE_SUPABASE_ANON_KEY },
+            { name: 'VITE_GOOGLE_GENAI_API_KEY', value: import.meta.env.VITE_GOOGLE_GENAI_API_KEY }
+        ];
+
+        const envResults = envVars.map(env => {
+            const hasValue = env.value && env.value.length > 0;
+            const masked = hasValue ? env.value.substring(0, 10) + '...' : 'Not set';
+            const status = hasValue ? '✅' : '❌';
+            const color = hasValue ? 'text-green-600' : 'text-red-600';
+            return `<p class="${color}">${status} ${env.name}: ${masked}</p>`;
+        });
+
+        envStatus.innerHTML = envResults.join('');
+
+        // Test global definitions
+        setTimeout(() => {
+            let globalInfo = '<div class="mt-4 pt-4 border-t border-gray-200">';
+            globalInfo += '<p class="text-sm text-gray-600 font-semibold mb-2">Global Environment:</p>';
+            
+            if (typeof globalThis !== 'undefined') {
+                globalInfo += '<p class="text-green-600 text-sm">✅ globalThis is available</p>';
+            }
+            
+            if (typeof require === 'undefined') {
+                globalInfo += '<p class="text-green-600 text-sm">✅ require is properly undefined (no conflicts)</p>';
+            } else {
+                globalInfo += '<p class="text-red-600 text-sm">❌ require is still defined (potential conflict)</p>';
+            }
+            
+            if (typeof process !== 'undefined') {
+                globalInfo += '<p class="text-green-600 text-sm">✅ process polyfill is available</p>';
+            }
+            
+            globalInfo += '</div>';
+            
+            moduleStatus.innerHTML += globalInfo;
+        }, 2000);
+    </script>
+</body>
+</html>

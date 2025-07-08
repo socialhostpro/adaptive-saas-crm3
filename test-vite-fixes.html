@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite Fixes Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root">
+        <div class="p-8">
+            <h1 class="text-2xl font-bold mb-4">Testing Vite Configuration Fixes</h1>
+            <div id="status" class="mb-4 p-4 bg-gray-100 rounded">
+                <p>Loading...</p>
+            </div>
+            <div id="supabase-test" class="mb-4 p-4 bg-blue-100 rounded">
+                <h2 class="text-lg font-semibold mb-2">Supabase Test</h2>
+                <p id="supabase-status">Testing Supabase client...</p>
+            </div>
+            <div id="grid-test" class="mb-4 p-4 bg-green-100 rounded">
+                <h2 class="text-lg font-semibold mb-2">React Grid Layout Test</h2>
+                <p id="grid-status">Testing React Grid Layout imports...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const statusDiv = document.getElementById('status');
+        const supabaseStatus = document.getElementById('supabase-status');
+        const gridStatus = document.getElementById('grid-status');
+
+        // Test basic module loading
+        try {
+            statusDiv.innerHTML = '<p class="text-green-600">✓ Basic module loading working</p>';
+        } catch (error) {
+            statusDiv.innerHTML = `<p class="text-red-600">✗ Basic test failed: ${error.message}</p>`;
+        }
+
+        // Test Supabase import
+        try {
+            import('@supabase/supabase-js').then(() => {
+                supabaseStatus.innerHTML = '<span class="text-green-600">✓ Supabase import successful</span>';
+            }).catch((error) => {
+                supabaseStatus.innerHTML = `<span class="text-red-600">✗ Supabase import failed: ${error.message}</span>`;
+            });
+        } catch (error) {
+            supabaseStatus.innerHTML = `<span class="text-red-600">✗ Supabase test failed: ${error.message}</span>`;
+        }
+
+        // Test React Grid Layout import
+        try {
+            import('react-grid-layout').then(() => {
+                gridStatus.innerHTML = '<span class="text-green-600">✓ React Grid Layout import successful</span>';
+            }).catch((error) => {
+                gridStatus.innerHTML = `<span class="text-red-600">✗ React Grid Layout import failed: ${error.message}</span>`;
+            });
+        } catch (error) {
+            gridStatus.innerHTML = `<span class="text-red-600">✗ React Grid Layout test failed: ${error.message}</span>`;
+        }
+
+        // Test global definitions
+        setTimeout(() => {
+            const globalTests = [];
+            
+            if (typeof globalThis !== 'undefined') {
+                globalTests.push('✓ globalThis defined');
+            } else {
+                globalTests.push('✗ globalThis not defined');
+            }
+
+            if (typeof global !== 'undefined') {
+                globalTests.push('✓ global defined');
+            } else {
+                globalTests.push('✗ global not defined');
+            }
+
+            if (typeof require === 'undefined') {
+                globalTests.push('✓ require properly undefined');
+            } else {
+                globalTests.push('✗ require still defined (potential conflict)');
+            }
+
+            statusDiv.innerHTML += `<div class="mt-2"><strong>Global Tests:</strong><br>${globalTests.join('<br>')}</div>`;
+        }, 1000);
+    </script>
+</body>
+</html>
