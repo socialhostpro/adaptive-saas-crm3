@@ -89,8 +89,13 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
         });
     };
 
+    React.useEffect(() => {
+        console.log('Dashboard component rendered');
+    }, []);
+
     return (
-        <>
+        <div id="crm-container">
+            {/* Dashboard header and add widget button */}
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-4">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
@@ -121,7 +126,7 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
                 activeWidgetIds={activeWidgetIds}
                 onAddWidget={addWidget}
             />
-        </>
+        </div>
     );
 };
 
