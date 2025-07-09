@@ -14,11 +14,11 @@ import { supabase } from '../lib/supabaseClient';
 
 interface BillingProps {
     invoices: Invoice[];
-    setInvoices: React.Dispatch<React.SetStateAction<Invoice[]>>;
+    setInvoices?: React.Dispatch<React.SetStateAction<Invoice[]>>;
     estimates: Estimate[];
-    setEstimates: React.Dispatch<React.SetStateAction<Estimate[]>>;
+    setEstimates?: React.Dispatch<React.SetStateAction<Estimate[]>>;
     products: Product[];
-    setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+    setProducts?: React.Dispatch<React.SetStateAction<Product[]>>;
     contacts: Contact[];
     mediaFiles: MediaFile[];
     appContext: any;
@@ -64,7 +64,19 @@ const ShareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w
 
 type Tab = 'invoices' | 'estimates' | 'products';
 
-const Billing: React.FC<BillingProps> = ({ invoices, setInvoices, estimates, setEstimates, products, setProducts, contacts, mediaFiles, appContext }) => {
+const Billing: React.FC<BillingProps> = (props) => {
+  const {
+    invoices,
+    setInvoices = () => {},
+    estimates,
+    setEstimates = () => {},
+    products,
+    setProducts = () => {},
+    contacts,
+    mediaFiles,
+    appContext
+  } = props;
+
     const [activeTab, setActiveTab] = useState<Tab>('invoices');
     const [isCreateInvoiceOpen, setCreateInvoiceOpen] = useState(false);
     const [isCreateEstimateOpen, setCreateEstimateOpen] = useState(false);

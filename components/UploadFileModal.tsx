@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { MediaFile, MediaFileType } from '../types';
 import { supabase } from '../hooks/useAppStore';
+import useGlobalStore from './useGlobalStoreProxy';
 
 interface UploadFileModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (file: Omit<MediaFile, 'id'>) => void;
 }
 
 const getInitialState = () => ({
@@ -14,8 +14,17 @@ const getInitialState = () => ({
     type: 'image' as MediaFileType,
 });
 
-const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose, onSubmit }) => {
-    const [formData, setFormData] = useState(getInitialState());
+const allowedTypes = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'text/plain', 'application/pdf', 'text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+];
+
+const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.txt', '.pdf', '.csv'];
+
+const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose }) => {
+    const [formData, setFormData] = useState({ ...getInitialState(), description: '' });
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const addMediaFile = useGlobalStore((state) => state.addMediaFile);
 
     useEffect(() => {
         if (isOpen) {
@@ -23,45 +32,77 @@ const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose, onSu
         }
     }, [isOpen]);
 
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleFileUpload = async (file: File) => {
+        setErrorMsg(null);
+        // Check authentication
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+            setErrorMsg('Auth error: ' + (userError.message || 'Unknown error'));
+            return;
+        }
+        if (!user) {
+            setErrorMsg('You must be logged in to upload files.');
+            return;
+        }
+        // Determine file_type enum
+        let file_type: 'image' | 'video' | 'document' | 'audio' | 'other' = 'other';
+        if (file.type.startsWith('image/')) file_type = 'image';
+        else if (file.type.startsWith('video/')) file_type = 'video';
+        else if (file.type.startsWith('audio/')) file_type = 'audio';
+        else if (file.type === 'application/pdf' || file.type === 'text/plain' || file.type === 'text/csv' || file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') file_type = 'document';
+
         const { data, error } = await supabase.storage.from('media').upload(`uploads/${file.name}`, file);
         if (error) {
-            console.error('Error uploading file:', error.message);
-            alert('File upload failed. Please try again.');
+            setErrorMsg('File upload failed: ' + (error.message || 'Unknown error'));
             return;
         }
         const publicUrl = supabase.storage.from('media').getPublicUrl(`uploads/${file.name}`).data.publicUrl;
         if (!publicUrl) {
-            alert('Failed to retrieve file URL.');
+            setErrorMsg('Failed to retrieve file URL.');
             return;
         }
-        onSubmit({
-            name: file.name,
-            url: publicUrl,
-            type: formData.type,
-            uploadedAt: new Date(),
-        });
+        // Insert into media_files table
+        const { data: inserted, error: insertError } = await supabase.from('media_files').insert([
+            {
+                file_name: file.name,
+                name: formData.name || file.name,
+                description: formData.description || null,
+                file_type: file_type,
+                type: formData.type || file_type,
+                url: publicUrl,
+                size: file.size,
+                uploaded_by: user.id,
+            }
+        ]).select();
+        if (insertError || !inserted || !inserted[0]) {
+            setErrorMsg('Failed to save file metadata: ' + (insertError?.message || 'Unknown error'));
+            return;
+        }
+        // Add to global state
+        addMediaFile({ ...inserted[0], syncStatus: 'synced' });
+        onClose();
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.name || !formData.url) {
-            alert('Please fill out all fields to simulate the upload.');
-            return;
-        }
+        setErrorMsg(null);
         const fileInput = document.getElementById('fileInput') as HTMLInputElement;
         const file = fileInput?.files?.[0];
-        if (file) {
-            await handleFileUpload(file);
-        } else {
-            alert('Please select a file to upload.');
+        if (!file) {
+            setErrorMsg('Please select a file to upload.');
+            return;
         }
+        const isAllowedType = allowedTypes.includes(file.type) || allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+        if (!isAllowedType) {
+            setErrorMsg('Unsupported file type. Please upload an image, txt, pdf, or csv file.');
+            return;
+        }
+        await handleFileUpload(file);
     };
 
     if (!isOpen) return null;
@@ -76,7 +117,30 @@ const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose, onSu
                 <main className="p-6 space-y-4">
                     <div>
                         <label htmlFor="fileInput" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select File *</label>
-                        <input type="file" id="fileInput" name="file" required className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white"/>
+                        <input type="file" id="fileInput" name="file" required accept=".jpg,.jpeg,.png,.gif,.webp,.txt,.pdf,.csv" className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white" onChange={e => {
+                            setErrorMsg(null);
+                            handleInputChange(e);
+                            const file = e.target.files?.[0];
+                            if (file) {
+                                const isAllowedType = allowedTypes.includes(file.type) || allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                                if (!isAllowedType) {
+                                    setErrorMsg('Unsupported file type. Please upload an image, txt, pdf, or csv file.');
+                                    e.target.value = '';
+                                    setFormData(prev => ({ ...prev, name: '' }));
+                                    return;
+                                }
+                                setFormData(prev => ({ ...prev, name: file.name }));
+                            }
+                        }}/>
+                        {errorMsg && <div className="text-red-600 text-sm mt-1">{errorMsg}</div>}
+                    </div>
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Name *</label>
+                        <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white" />
+                    </div>
+                    <div>
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (optional)</label>
+                        <textarea id="description" name="description" value={formData.description} onChange={handleInputChange} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white" rows={2} />
                     </div>
                     <div>
                         <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Type</label>

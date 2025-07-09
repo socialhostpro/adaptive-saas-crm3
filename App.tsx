@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -39,41 +39,13 @@ import CopyGeneration from './components/CopyGeneration';
 import VideoGeneration from './components/VideoGeneration';
 import { GoogleGenAI } from '@google/genai';
 import ProtectedRoute from './components/ProtectedRoute';
+import { Layout, TeamMember, CalendarEvent, ActivityType, Widget } from './types';
 
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
 import ForgotPassword from './components/auth/ForgotPassword';
 import { useGlobalStore } from "./hooks/useGlobalStore";
-
-
-import { 
-    activities as initialActivities, 
-    tasks as initialTasks, 
-    contacts as initialContacts,
-    invoices as initialInvoices,
-    estimates as initialEstimates,
-    products as initialProducts,
-    timeEntries as initialTimeEntries,
-    projects as initialProjects,
-    projectTasks as initialProjectTasks,
-    teamMembers as initialTeamMembers,
-    leads as initialLeads,
-    opportunities as initialOpportunities,
-    mediaFiles as initialMediaFiles,
-    cases as initialCases,
-    caseTasks as initialCaseTasks,
-    conversations as initialConversations,
-    messages as initialMessages,
-    companyProfile as initialCompanyProfile,
-    subscriptionInvoices as initialSubscriptionInvoices,
-    featureAddons as initialFeatureAddons,
-    emailTemplates as initialEmailTemplates,
-    supportTickets as initialSupportTickets,
-    aiInsights as initialAiInsights,
-    saasSettings as initialSaaSSettings,
-    saasEmailTemplates as initialSaaSEmailTemplates,
-} from './data';
-import { Activity, Task, Contact, Invoice, Estimate, Product, TimeEntry, Project, ProjectTask, TeamMember, Lead, Opportunity, MediaFile, CalendarEvent, ActivityType, Case, CaseTask, Widget, Layout, CompanyProfile, SubscriptionInvoice, FeatureAddon, EmailTemplate, Conversation, ChatMessage, SupportTicket, AIInsight, SaaSSettings as SaaSSettingsType } from './types';
+import { supabase } from './lib/supabaseClient';
 
 // Define all possible widgets
 const ALL_WIDGETS: Widget[] = [
@@ -133,31 +105,103 @@ const AppContent: React.FC = () => {
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activities, setActivities] = useState<Activity[]>(initialActivities);
-  const [tasks, setTasks] = useState<Task[]>([]); // Start with empty, Supabase loads
-  const [contacts, setContacts] = useState<Contact[]>(initialContacts);
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
-  const [estimates, setEstimates] = useState<Estimate[]>(initialEstimates);
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>(initialTimeEntries);
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [projectTasks, setProjectTasks] = useState<ProjectTask[]>(initialProjectTasks);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
-  const [leads, setLeads] = useState<Lead[]>(initialLeads);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(initialOpportunities);
-  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>(initialMediaFiles);
-  const [cases, setCases] = useState<Case[]>(initialCases);
-  const [caseTasks, setCaseTasks] = useState<CaseTask[]>(initialCaseTasks);
-  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
-  const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(initialCompanyProfile);
-  const [subscriptionInvoices] = useState<SubscriptionInvoice[]>(initialSubscriptionInvoices);
-  const [featureAddons, setFeatureAddons] = useState<FeatureAddon[]>(initialFeatureAddons);
-  const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>(initialEmailTemplates);
-  const [isStripeConnected, setIsStripeConnected] = useState(true);
-  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(initialSupportTickets);
-  const [aiInsights, setAiInsights] = useState<AIInsight[]>(initialAiInsights);
+  
+  // Use global state for business data
+  const {
+    contacts,
+    setContacts: setGlobalContacts,
+    leads,
+    setLeads: setGlobalLeads,
+    opportunities,
+    setOpportunities: setGlobalOpportunities,
+    projects,
+    setProjects: setGlobalProjects,
+    projectTasks,
+    setProjectTasks: setGlobalProjectTasks,
+    tasks,
+    setTasks: setGlobalTasks,
+    teamMembers,
+    setTeamMembers: setGlobalTeamMembers,
+    mediaFiles,
+    setMediaFiles: setGlobalMediaFiles,
+    cases,
+    setCases: setGlobalCases,
+    caseTasks,
+    setCaseTasks: setGlobalCaseTasks,
+    emailTemplates,
+    setEmailTemplates: setGlobalEmailTemplates,
+    supportTickets,
+    setSupportTickets: setGlobalSupportTickets,
+    timeEntries,
+    setTimeEntries: setGlobalTimeEntries,
+    activities,
+    setActivities,
+    invoices,
+    setInvoices: setGlobalInvoices,
+    estimates,
+    setEstimates: setGlobalEstimates,
+    products,
+    setProducts: setGlobalProducts,
+    aiInsights,
+    setAiInsights: setGlobalAiInsights,
+    isInitialized,
+    setInitialized
+  } = useGlobalStore();
 
+  // Fetch all business data from Supabase on first load
+  useEffect(() => {
+    const fetchAllData = async () => {
+      if (!isInitialized) {
+        try {
+          // Fetch and set contacts
+          const { data: contactsData } = await supabase.from('contacts').select('*');
+          if (contactsData) setGlobalContacts(contactsData);
+          // Fetch and set leads
+          const { data: leadsData } = await supabase.from('leads').select('*');
+          if (leadsData) setGlobalLeads(leadsData);
+          // Fetch and set opportunities
+          const { data: opportunitiesData } = await supabase.from('opportunities').select('*');
+          if (opportunitiesData) setGlobalOpportunities(opportunitiesData);
+          // Fetch and set projects
+          const { data: projectsData } = await supabase.from('projects').select('*');
+          if (projectsData) setGlobalProjects(projectsData);
+          // Fetch and set projectTasks
+          const { data: projectTasksData } = await supabase.from('project_tasks').select('*');
+          if (projectTasksData) setGlobalProjectTasks(projectTasksData);
+          // Fetch and set tasks
+          const { data: tasksData } = await supabase.from('tasks').select('*');
+          if (tasksData) setGlobalTasks(tasksData);
+          // Fetch and set teamMembers
+          const { data: teamMembersData } = await supabase.from('team_members').select('*');
+          if (teamMembersData) setGlobalTeamMembers(teamMembersData);
+          // Fetch and set mediaFiles
+          const { data: mediaFilesData } = await supabase.from('media_files').select('*');
+          if (mediaFilesData) setGlobalMediaFiles(mediaFilesData);
+          // Fetch and set cases
+          const { data: casesData } = await supabase.from('cases').select('*');
+          if (casesData) setGlobalCases(casesData);
+          // Fetch and set caseTasks
+          const { data: caseTasksData } = await supabase.from('case_tasks').select('*');
+          if (caseTasksData) setGlobalCaseTasks(caseTasksData);
+          // Fetch and set emailTemplates
+          const { data: emailTemplatesData } = await supabase.from('email_templates').select('*');
+          if (emailTemplatesData) setGlobalEmailTemplates(emailTemplatesData);
+          // Fetch and set supportTickets
+          const { data: supportTicketsData } = await supabase.from('support_tickets').select('*');
+          if (supportTicketsData) setGlobalSupportTickets(supportTicketsData);
+          // Fetch and set timeEntries
+          const { data: timeEntriesData } = await supabase.from('time_entries').select('*');
+          if (timeEntriesData) setGlobalTimeEntries(timeEntriesData);
+          // ...fetch other entities as needed...
+        } catch (err) {
+          console.error('Data fetch error:', err);
+        } finally {
+          setInitialized(true);
+        }
+      }
+    };
+    fetchAllData();
+  }, [isInitialized]);
 
   const [dashboardLayout, setDashboardLayout] = useState<Layout[]>(initialLayout);
   const [activeWidgetIds, setActiveWidgetIds] = useState<string[]>(initialWidgetIds);
@@ -204,74 +248,6 @@ const AppContent: React.FC = () => {
     setDmPopups(prev => prev.filter(popup => popup.id !== popupId));
   };
 
-  const { 
-    setTasks: setGlobalTasks, 
-    setContacts: setGlobalContacts,
-    setTeamMembers: setGlobalTeamMembers,
-    setLeads: setGlobalLeads,
-    setOpportunities: setGlobalOpportunities,
-    setProjects: setGlobalProjects,
-    setTimeEntries: setGlobalTimeEntries,
-    setMediaFiles: setGlobalMediaFiles,
-    isInitialized,
-    setInitialized
-  } = useGlobalStore();
-
-  // Initialize global store with initial data on first load
-  React.useEffect(() => {
-    // Only initialize if not already initialized
-    if (!isInitialized) {
-      // Convert tasks to TaskWithSync format and initialize global store
-      const tasksWithSync = initialTasks.map(task => ({
-        ...task,
-        syncStatus: 'synced' as const
-      }));
-      setGlobalTasks(tasksWithSync);
-
-      // Initialize other data
-      setGlobalContacts(initialContacts);
-      
-      const teamMembersWithSync = initialTeamMembers.map(member => ({
-        ...member,
-        syncStatus: 'synced' as const
-      }));
-      setGlobalTeamMembers(teamMembersWithSync);
-
-      const leadsWithSync = initialLeads.map(lead => ({
-        ...lead,
-        syncStatus: 'synced' as const
-      }));
-      setGlobalLeads(leadsWithSync);
-
-      const opportunitiesWithSync = initialOpportunities.map(opp => ({
-        ...opp,
-        syncStatus: 'synced' as const
-      }));
-      setGlobalOpportunities(opportunitiesWithSync);
-
-      const projectsWithSync = initialProjects.map(project => ({
-        ...project,
-        syncStatus: 'synced' as const
-      }));
-      setGlobalProjects(projectsWithSync);
-
-      const timeEntriesWithSync = initialTimeEntries.map(entry => ({
-        ...entry,
-        syncStatus: 'synced' as const
-      }));
-      setGlobalTimeEntries(timeEntriesWithSync);
-
-      const mediaFilesWithSync = initialMediaFiles.map(file => ({
-        ...file,
-        syncStatus: 'synced' as const
-      }));
-      setGlobalMediaFiles(mediaFilesWithSync);
-
-      // Mark as initialized
-      setInitialized(true);
-    }
-  }, [isInitialized]); // Only depend on isInitialized to avoid re-runs
-
   const generateAIInsights = async () => {
     try {
         const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
@@ -315,25 +291,17 @@ const AppContent: React.FC = () => {
   // Create a comprehensive context object to pass to the AI
   const appContext = {
     activities, setActivities,
-    tasks, setTasks,
-    contacts, setContacts,
-    invoices, setInvoices,
-    estimates, setEstimates,
-    products, setProducts,
-    timeEntries, setTimeEntries,
-    projects, setProjects,
-    projectTasks, setProjectTasks,
-    teamMembers, setTeamMembers,
-    leads, setLeads,
-    opportunities, setOpportunities,
-    mediaFiles, setMediaFiles,
-    cases, setCases,
-    caseTasks, setCaseTasks,
-    conversations, setConversations,
-    messages, setMessages,
-    companyProfile, setCompanyProfile,
-    supportTickets, setSupportTickets,
-    currentUser
+    tasks, setTasks: setGlobalTasks,
+    contacts, setContacts: setGlobalContacts,
+    timeEntries, setTimeEntries: setGlobalTimeEntries,
+    projects, setProjects: setGlobalProjects,
+    projectTasks, setProjectTasks: setGlobalProjectTasks,
+    teamMembers, setTeamMembers: setGlobalTeamMembers,
+    leads, setLeads: setGlobalLeads,
+    opportunities, setOpportunities: setGlobalOpportunities,
+    mediaFiles, setMediaFiles: setGlobalMediaFiles,
+    cases, setCases: setGlobalCases,
+    caseTasks, setCaseTasks: setGlobalCaseTasks,
   };
 
   const handleLayoutChange = (newLayout: Layout[]) => {
@@ -512,21 +480,6 @@ const AppContent: React.FC = () => {
     };
   }, []);
 
-  // Log render and state for debugging
-  React.useEffect(() => {
-    console.log('AppContent render', { error });
-  });
-
-  // Log if CRM container is being rendered
-  React.useEffect(() => {
-    const crm = document.getElementById('crm-container');
-    if (crm) {
-      console.log('CRM container is rendered and visible.');
-    } else {
-      console.warn('CRM container is NOT rendered.');
-    }
-  });
-
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Sidebar - visible by default on desktop, toggleable on mobile */}
@@ -535,8 +488,7 @@ const AppContent: React.FC = () => {
         setIsOpen={setIsSidebarOpen} 
         mediaFiles={mediaFiles}
         teamMembers={teamMembers}
-        setTeamMembers={setTeamMembers}
-        companyProfile={companyProfile}
+        setTeamMembers={setGlobalTeamMembers}
         toggleDarkMode={toggleDarkMode}
         isDarkMode={isDarkMode}
       />}
@@ -544,7 +496,7 @@ const AppContent: React.FC = () => {
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-900">
         {!isPublicPage && <Header setIsSidebarOpen={setIsSidebarOpen} />}
-        <main className={`flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 ${isPublicPage ? '' : 'p-6 md:p-8 xl:p-10'}`}>
+        <main id="crm-container" className={`flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 ${isPublicPage ? '' : 'p-6 md:p-8 xl:p-10'}`}>
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
@@ -571,7 +523,7 @@ const AppContent: React.FC = () => {
                 <Route path="/calendar" element={<Calendar currentUser={currentUser} />} />
                 <Route path="/opportunities" element={<Opportunities 
                   opportunities={opportunities}
-                  setOpportunities={setOpportunities}
+                  setOpportunities={setGlobalOpportunities}
                   contacts={contacts}
                   teamMembers={teamMembers}
                   activities={activities}
@@ -580,7 +532,7 @@ const AppContent: React.FC = () => {
                 <Route path="/leads" element={<Leads appContext={appContext} />} />
                 <Route path="/contacts" element={<Contacts />} />
                 <Route path="/activities" element={<Activities 
-                  setTasks={setTasks}
+                  setTasks={setGlobalTasks}
                   contacts={contacts}
                   appContext={appContext}
                 />} />
@@ -599,26 +551,14 @@ const AppContent: React.FC = () => {
                 <Route path="/form-builder" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
                 <Route path="/bot-analytics" element={<ProtectedRoute><BotAnalytics /></ProtectedRoute>} />
                 <Route path="/chat" element={<Chat 
-                  conversations={conversations}
-                  setConversations={setConversations}
-                  messages={messages}
-                  setMessages={setMessages}
                   teamMembers={teamMembers}
                   mediaFiles={mediaFiles}
-                  supportTickets={supportTickets}
-                  setSupportTickets={setSupportTickets}
                   currentUser={currentUser}
                   appContext={appContext}
                 />} />
                 <Route path="/communications" element={<ProtectedRoute><Chat 
-                  conversations={conversations}
-                  setConversations={setConversations}
-                  messages={messages}
-                  setMessages={setMessages}
                   teamMembers={teamMembers}
                   mediaFiles={mediaFiles}
-                  supportTickets={supportTickets}
-                  setSupportTickets={setSupportTickets}
                   currentUser={currentUser}
                   appContext={appContext}
                 /></ProtectedRoute>} />
@@ -633,11 +573,8 @@ const AppContent: React.FC = () => {
                 />} />
                 <Route path="/billing" element={<Billing 
                   invoices={invoices}
-                  setInvoices={setInvoices}
                   estimates={estimates}
-                  setEstimates={setEstimates}
                   products={products}
-                  setProducts={setProducts}
                   contacts={contacts}
                   mediaFiles={mediaFiles}
                   appContext={appContext}
@@ -658,34 +595,32 @@ const AppContent: React.FC = () => {
                   contacts={contacts}
                   teamMembers={teamMembers}
                   mediaFiles={mediaFiles.map(f => ({...f, syncStatus: 'synced'}))}
-                  setMediaFiles={setMediaFiles}
                   appContext={appContext}
                 />} />
                 <Route path="/media" element={<MediaLibrary 
                   mediaFiles={mediaFiles.map(f => ({...f, syncStatus: 'synced'}))}
-                  setMediaFiles={setMediaFiles}
                   currentUser={currentUser}
                   appContext={appContext}
                 />} />
                 <Route path="/company" element={<Company 
-                  companyProfile={companyProfile}
-                  setCompanyProfile={setCompanyProfile}
-                  subscriptionInvoices={subscriptionInvoices}
-                  usageStats={{
-                    contacts: contacts.length,
-                    deals: opportunities.length,
-                    projects: projects.length,
-                    storageUsed: mediaFiles.length,
-                  }}
-                  accountOwner={teamMembers.find(m => m.id === 'user')}
-                  setTeamMembers={setTeamMembers}
-                  isStripeConnected={isStripeConnected}
-                  setIsStripeConnected={setIsStripeConnected}
-                  staff={teamMembers}
-                  featureAddons={featureAddons}
-                  setFeatureAddons={setFeatureAddons}
-                  emailTemplates={emailTemplates}
-                  setEmailTemplates={setEmailTemplates}
+                  // companyProfile={companyProfile}
+                  // setCompanyProfile={setCompanyProfile}
+                  // subscriptionInvoices={subscriptionInvoices}
+                  // usageStats={{
+                  //   contacts: contacts.length,
+                  //   deals: opportunities.length,
+                  //   projects: projects.length,
+                  //   storageUsed: mediaFiles.length,
+                  // }}
+                  // accountOwner={teamMembers.find(m => m.id === 'user')}
+                  // setTeamMembers={setTeamMembers}
+                  // isStripeConnected={isStripeConnected}
+                  // setIsStripeConnected={setIsStripeConnected}
+                  // staff={teamMembers}
+                  // featureAddons={featureAddons}
+                  // setFeatureAddons={setFeatureAddons}
+                  // emailTemplates={emailTemplates}
+                  // setEmailTemplates={setEmailTemplates}
                   mediaFiles={mediaFiles.map(f => ({...f, syncStatus: 'synced'}))}
                   currentUser={currentUser}
                   appContext={appContext}
@@ -699,13 +634,13 @@ const AppContent: React.FC = () => {
                 <Route path="/public/invoice/:invoiceId" element={<PublicInvoicePage 
                   invoices={invoices}
                   contacts={contacts}
-                  companyProfile={companyProfile}
+                  // companyProfile={companyProfile}
                 />} />
                 <Route path="/public/estimate/:estimateId" element={<PublicEstimatePage 
                   estimates={estimates}
-                  setEstimates={setEstimates}
+                  setEstimates={setGlobalEstimates}
                   contacts={contacts}
-                  companyProfile={companyProfile}
+                  // companyProfile={companyProfile}
                 />} />
                 {/* Bot Routes */}
                 <Route path="/bots/website-chat" element={<ProtectedRoute><WebsiteChatBot /></ProtectedRoute>} />
@@ -722,21 +657,13 @@ const AppContent: React.FC = () => {
               <div className="fixed bottom-6 right-6 z-40">
                 <button
                   onClick={() => setIsChatPopupOpen(true)}
-                  className="relative bg-primary-600 hover:bg-primary-700 text-white p-4 rounded-full shadow-lg transition-all duration-200"
+                  className="bg-primary-600 hover:bg-primary-700 text-white p-4 rounded-full shadow-lg transition-all duration-200"
                   aria-label="Open team chat"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.001 8.001 0 01-7.7-6M3 12c0-4.418 3.582-8 8-8s8 3.582 8 8z" />
                   </svg>
-                  {/* Unread messages badge */}
-                  {(() => {
-                    const unreadCount = getUnreadMessageCount(messages, currentUser?.id || 'user');
-                    return unreadCount > 0 && (
-                      <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </div>
-                    );
-                  })()}
+                  {/* Unread messages badge moved to ChatPopup */}
                 </button>
               </div>
             )}

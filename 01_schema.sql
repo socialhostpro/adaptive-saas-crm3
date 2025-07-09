@@ -591,6 +591,142 @@ CREATE TABLE company_settings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- active_subscriptions
+CREATE TABLE IF NOT EXISTS active_subscriptions (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id uuid,
+  status text,
+  plan text,
+  started_at timestamptz,
+  expires_at timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- activities
+CREATE TABLE IF NOT EXISTS activities (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  type text,
+  contact_id uuid,
+  contact_name text,
+  summary text,
+  timestamp timestamptz,
+  duration integer,
+  outcome text,
+  subject text,
+  location text,
+  end_time timestamptz,
+  lead_id uuid,
+  description text,
+  opportunity_id uuid,
+  project_id uuid,
+  case_id uuid,
+  assigned_to uuid,
+  created_by uuid,
+  start_time timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- cases
+CREATE TABLE IF NOT EXISTS cases (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title text NOT NULL,
+  description text,
+  priority text,
+  status text,
+  contact_id uuid,
+  contact_name text,
+  assigned_to uuid,
+  created_by uuid,
+  resolution text,
+  resolved_at timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- companies
+CREATE TABLE IF NOT EXISTS companies (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  created_by uuid
+);
+
+-- contact_subscriptions
+CREATE TABLE IF NOT EXISTS contact_subscriptions (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  contact_id uuid,
+  plan_name text,
+  plan_price numeric,
+  start_date date,
+  end_date date,
+  status text,
+  renewal_period text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- contacts
+CREATE TABLE IF NOT EXISTS contacts (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name text NOT NULL,
+  email text,
+  title text,
+  company text,
+  avatar_url text,
+  phone text,
+  created_by uuid,
+  address text,
+  info text,
+  company_id uuid,
+  social_networks jsonb,
+  related_contact_ids uuid[],
+  assigned_to uuid,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- discounts
+CREATE TABLE IF NOT EXISTS discounts (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code text,
+  description text,
+  amount numeric,
+  percent numeric,
+  is_active boolean,
+  valid_from date,
+  valid_to date,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- estimate_line_items
+CREATE TABLE IF NOT EXISTS estimate_line_items (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  estimate_id uuid,
+  product_id uuid,
+  description text,
+  quantity integer,
+  unit_price numeric,
+  total numeric,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- estimates
+CREATE TABLE IF NOT EXISTS estimates (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id uuid,
+  contact_id uuid,
+  estimate_number text,
+  status text,
+  issue_date date,
+  total numeric,
+  notes text
+);
+
 -- ==================================================
 -- FUNCTIONS AND TRIGGERS
 -- ==================================================

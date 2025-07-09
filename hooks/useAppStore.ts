@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabaseClient';
 
 // Re-export supabase for convenience
 export { supabase };

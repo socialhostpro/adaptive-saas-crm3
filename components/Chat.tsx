@@ -9,16 +9,16 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 
 interface ChatProps {
-    conversations: Conversation[],
-    setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>,
-    messages: ChatMessage[],
-    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
-    teamMembers: TeamMember[],
-    mediaFiles: MediaFile[],
-    supportTickets: SupportTicket[],
-    setSupportTickets: React.Dispatch<React.SetStateAction<SupportTicket[]>>;
-    currentUser: TeamMember | undefined;
-    appContext: any;
+    conversations?: Conversation[],
+    setConversations?: React.Dispatch<React.SetStateAction<Conversation[]>>,
+    messages?: ChatMessage[],
+    setMessages?: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
+    teamMembers?: TeamMember[],
+    mediaFiles?: MediaFile[],
+    supportTickets?: SupportTicket[],
+    setSupportTickets?: React.Dispatch<React.SetStateAction<SupportTicket[]>>;
+    currentUser?: TeamMember;
+    appContext?: any;
 }
 
 // Helper to find sender info
@@ -46,7 +46,18 @@ const formatMessageText = (text: string) => {
 
 // Main Chat Component
 const Chat: React.FC<ChatProps> = (props) => {
-    const { conversations, setConversations, messages, setMessages, teamMembers, mediaFiles, supportTickets, setSupportTickets, currentUser, appContext } = props;
+    const {
+      conversations = [],
+      setConversations = () => {},
+      messages = [],
+      setMessages = () => {},
+      teamMembers = [],
+      mediaFiles = [],
+      supportTickets = [],
+      setSupportTickets = () => {},
+      currentUser = undefined,
+      appContext = {}
+    } = props;
     const { sessionId } = useAuth();
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(conversations[0]?.id || null);
     const [view, setView] = useState<'conversations' | 'messages'>('conversations');

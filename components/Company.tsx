@@ -11,22 +11,22 @@ import FeatureManagement from './company/FeatureManagement';
 import EmailNotificationSettings from './company/EmailNotificationSettings';
 
 interface CompanyProps {
-  companyProfile: CompanyProfile;
-  setCompanyProfile: React.Dispatch<React.SetStateAction<CompanyProfile>>;
-  subscriptionInvoices: SubscriptionInvoice[];
-  usageStats: { [key: string]: number };
-  accountOwner: TeamMember | undefined;
-  setTeamMembers: React.Dispatch<React.SetStateAction<TeamMember[]>>;
-  isStripeConnected: boolean;
-  setIsStripeConnected: React.Dispatch<React.SetStateAction<boolean>>;
-  staff: TeamMember[];
-  featureAddons: FeatureAddon[];
-  setFeatureAddons: React.Dispatch<React.SetStateAction<FeatureAddon[]>>;
-  emailTemplates: EmailTemplate[];
-  setEmailTemplates: React.Dispatch<React.SetStateAction<EmailTemplate[]>>;
-  mediaFiles: MediaFile[];
-  currentUser: TeamMember | undefined;
-  appContext: any;
+  companyProfile?: CompanyProfile;
+  setCompanyProfile?: React.Dispatch<React.SetStateAction<CompanyProfile>>;
+  subscriptionInvoices?: SubscriptionInvoice[];
+  usageStats?: { [key: string]: number };
+  accountOwner?: TeamMember;
+  setTeamMembers?: React.Dispatch<React.SetStateAction<TeamMember[]>>;
+  isStripeConnected?: boolean;
+  setIsStripeConnected?: React.Dispatch<React.SetStateAction<boolean>>;
+  staff?: TeamMember[];
+  featureAddons?: FeatureAddon[];
+  setFeatureAddons?: React.Dispatch<React.SetStateAction<FeatureAddon[]>>;
+  emailTemplates?: EmailTemplate[];
+  setEmailTemplates?: React.Dispatch<React.SetStateAction<EmailTemplate[]>>;
+  mediaFiles?: MediaFile[];
+  currentUser?: TeamMember;
+  appContext?: any;
 }
 
 type Tab = 'details' | 'subscription' | 'usage' | 'account' | 'staff' | 'billing' | 'addons' | 'notifications';
@@ -43,30 +43,48 @@ const TABS: { id: Tab, label: string }[] = [
 ];
 
 const Company: React.FC<CompanyProps> = (props) => {
+    const {
+      companyProfile = {} as CompanyProfile,
+      setCompanyProfile = () => {},
+      subscriptionInvoices = [],
+      usageStats = {},
+      accountOwner = undefined,
+      setTeamMembers = () => {},
+      isStripeConnected = false,
+      setIsStripeConnected = () => {},
+      staff = [],
+      featureAddons = [],
+      setFeatureAddons = () => {},
+      emailTemplates = [],
+      setEmailTemplates = () => {},
+      mediaFiles = [],
+      currentUser = undefined,
+      appContext = {}
+    } = props;
     const [activeTab, setActiveTab] = useState<Tab>('details');
 
     const renderContent = () => {
         switch (activeTab) {
             case 'details':
                 return <CompanyDetails 
-                    companyProfile={props.companyProfile} 
-                    setCompanyProfile={props.setCompanyProfile} 
-                    mediaFiles={props.mediaFiles}
+                    companyProfile={companyProfile} 
+                    setCompanyProfile={setCompanyProfile} 
+                    mediaFiles={mediaFiles}
                 />;
             case 'subscription':
-                return <SubscriptionManagement invoices={props.subscriptionInvoices} />;
+                return <SubscriptionManagement invoices={subscriptionInvoices} />;
             case 'usage':
-                return <UsageStats stats={props.usageStats} />;
+                return <UsageStats stats={usageStats} />;
             case 'account':
-                return <AccountInfo accountOwner={props.accountOwner} />;
+                return <AccountInfo accountOwner={accountOwner} />;
             case 'staff':
-                return <StaffManagement staff={props.staff} setStaff={props.setTeamMembers} />;
+                return <StaffManagement staff={staff} setStaff={setTeamMembers} />;
             case 'billing':
-                return <BillingIntegration isConnected={props.isStripeConnected} setConnected={props.setIsStripeConnected} />;
+                return <BillingIntegration isConnected={isStripeConnected} setConnected={setIsStripeConnected} />;
             case 'addons':
-                return <FeatureManagement addons={props.featureAddons} setAddons={props.setFeatureAddons} />;
+                return <FeatureManagement addons={featureAddons} setAddons={setFeatureAddons} />;
             case 'notifications':
-                return <EmailNotificationSettings templates={props.emailTemplates} setTemplates={props.setEmailTemplates} />;
+                return <EmailNotificationSettings templates={emailTemplates} setTemplates={setEmailTemplates} />;
             default:
                 return null;
         }

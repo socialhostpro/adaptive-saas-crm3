@@ -327,6 +327,26 @@ const Tasks: React.FC = () => {
                 aria-label={`Open details for ${task.title}`}
                 ref={el => { if (el) taskRefs.current[task.id] = el; }}
               >
+                {/* Sync status indicator */}
+                <div className="absolute top-4 left-4 z-10">
+                  {task._pendingDelete ? (
+                    <span title="Pending Deletion" className="inline-flex items-center text-red-400 bg-red-50 dark:bg-red-900 rounded-full px-2 py-1 text-xs font-semibold opacity-70">
+                      🗑️ Deleting
+                    </span>
+                  ) : task.syncStatus === 'pending' ? (
+                    <span title="Pending Sync" className="inline-flex items-center text-yellow-500 bg-yellow-50 dark:bg-yellow-900 rounded-full px-2 py-1 text-xs font-semibold">
+                      ⏳ Syncing
+                    </span>
+                  ) : task.syncStatus === 'error' ? (
+                    <span title="Sync Error" className="inline-flex items-center text-red-500 bg-red-50 dark:bg-red-900 rounded-full px-2 py-1 text-xs font-semibold">
+                      ⚠️ Error
+                    </span>
+                  ) : (
+                    <span title="Synced" className="inline-flex items-center text-green-500 bg-green-50 dark:bg-green-900 rounded-full px-2 py-1 text-xs font-semibold opacity-60">
+                      ✅ Synced
+                    </span>
+                  )}
+                </div>
                 {/* Top row: Action icons */}
                 <div className="absolute top-4 right-4 z-10 flex gap-2">
                   <button

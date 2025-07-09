@@ -34,6 +34,7 @@ export interface Contact {
 
 export interface ContactWithSync extends Contact {
   syncStatus?: 'pending' | 'synced' | 'error';
+  _pendingDelete?: boolean;
 }
 
 export interface Lead {
@@ -151,6 +152,7 @@ export interface Task {
   timeEntryIds?: string[];
 }
 
+export type TaskWithSync = Task & { syncStatus: 'synced' | 'pending' | 'error'; _pendingDelete?: boolean };
 
 export interface LineItem {
   id: string;
@@ -185,6 +187,8 @@ export interface Invoice {
   status: InvoiceStatus;
   lineItems?: LineItem[];
   payments: Payment[];
+  syncStatus?: 'pending' | 'synced' | 'error'; // For offline/online sync
+  _pendingDelete?: boolean; // For deletion tracking
 }
 
 export interface Product {
@@ -193,6 +197,8 @@ export interface Product {
   description: string;
   price: number;
   imageUrl?: string;
+  syncStatus?: 'pending' | 'synced' | 'error'; // For offline/online sync
+  _pendingDelete?: boolean; // For deletion tracking
 }
 
 
@@ -248,6 +254,8 @@ export interface Estimate {
   expiryDate: string;
   status: EstimateStatus;
   lineItems?: LineItem[];
+  syncStatus?: 'pending' | 'synced' | 'error'; // For offline/online sync
+  _pendingDelete?: boolean; // For deletion tracking
 }
 
 export interface ChatMessage {
@@ -406,6 +414,8 @@ export interface Case {
     // Notes and audit trail
     notes?: CaseNote[];
     history?: CaseHistoryEntry[];
+    syncStatus?: 'pending' | 'synced' | 'error'; // For offline/online sync
+    _pendingDelete?: boolean; // For deletion tracking
 }
 
 export interface CaseTask {
@@ -522,6 +532,8 @@ export interface AIInsight {
   emoji: string;
   text: string;
   priority: 'high' | 'medium' | 'low';
+  syncStatus?: 'pending' | 'synced' | 'error'; // For offline/online sync
+  _pendingDelete?: boolean; // For deletion tracking
 }
 
 export interface SaaSSettings {

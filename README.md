@@ -73,6 +73,32 @@ The application should now be running on `http://localhost:5173`.
 └── ...
 ```
 
+## Supabase Storage Integration
+
+Media files (images, documents, etc.) are uploaded and managed using Supabase Storage. See `lib/mediaStorage.ts` for utility functions:
+
+- `uploadMediaFile(file: File, bucket?: string)` – Uploads a file to Supabase Storage.
+- `getMediaFileUrl(path: string, bucket?: string)` – Gets a public URL for a stored file.
+- `deleteMediaFile(path: string, bucket?: string)` – Deletes a file from storage.
+
+Integrate these utilities in your media file components for file upload, preview, and deletion.
+
+## Supabase Realtime Integration
+
+The app supports live updates using Supabase Realtime. See `lib/realtime.ts` for utilities:
+
+- `subscribeToTable(table: string, onChange: (payload) => void)` – Subscribes to realtime changes (insert, update, delete) for a table.
+- `unsubscribeFromChannel(channel)` – Unsubscribes from a realtime channel.
+
+Use these in your components to keep UI in sync with backend changes in real time.
+
+## Sync, Offline, and State Management
+
+- All business data is managed in Zustand global state with optimistic updates and sync status (`pending`, `synced`, `error`).
+- CRUD operations update state first, then sync to Supabase in the background.
+- Offline changes are queued and synced when back online.
+- See `lib/syncService.ts` for sync logic and `hooks/useGlobalStore.ts` for state management.
+
 ## Next Steps & To-Do
 
 For a detailed plan of the remaining work, please see the [Project_Guide.md](Project_Guide.md). This includes:

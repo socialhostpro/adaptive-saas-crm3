@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, ActivityType, Task, Contact } from '../types';
+import { Activity, ActivityType, Task, TaskWithSync, Contact } from '../types';
 import Card from './shared/Card';
 import LogActivityModal from './LogActivityModal';
 import ActivityDetailsModal from './ActivityDetailsModal';
 import { useGlobalStore } from '../hooks/useGlobalStore';
 
 interface ActivitiesProps {
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  setTasks: (tasks: TaskWithSync[] | ((prev: TaskWithSync[]) => TaskWithSync[])) => void;
   contacts: Contact[];
   appContext: any;
 }
@@ -39,8 +39,8 @@ const Activities: React.FC<ActivitiesProps> = ({ setTasks, contacts, appContext 
       const activityToInsert: Activity = { ...newActivity, id: `act-${Date.now()}` };
       setActivities([activityToInsert, ...activities]);
       if (followUpTask) {
-        const taskToInsert: Task = { ...followUpTask, id: `task-${Date.now()}` };
-        setTasks(prev => [taskToInsert, ...prev]);
+        const taskToInsert: TaskWithSync = { ...followUpTask, id: `task-${Date.now()}`, syncStatus: 'pending' };
+        setTasks(prev => [taskToInsert, ...(Array.isArray(prev) ? prev : [])]);
       }
       setLogModalOpen(false);
     } catch (err: any) {

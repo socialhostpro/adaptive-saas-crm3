@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Estimate, EstimateStatus, Contact, CompanyProfile } from '../types';
@@ -22,7 +19,7 @@ const EstimateStatusBadge: React.FC<{ status: EstimateStatus }> = ({ status }) =
   return <span className={`${baseClasses} ${colorClasses}`}>{status}</span>;
 };
 
-const PublicEstimatePage: React.FC<{ estimates: Estimate[], setEstimates: React.Dispatch<React.SetStateAction<Estimate[]>>, contacts: Contact[], companyProfile: CompanyProfile }> = ({ estimates, setEstimates, contacts, companyProfile }) => {
+const PublicEstimatePage: React.FC<{ estimates: Estimate[], setEstimates?: React.Dispatch<React.SetStateAction<Estimate[]>>, contacts: Contact[], companyProfile?: CompanyProfile }> = ({ estimates, setEstimates = () => {}, contacts, companyProfile = { name: '', address: '', city: '', state: '', zip: '', country: '', phone: '', website: '' } }) => {
     const { estimateId } = useParams<{ estimateId: string }>();
     const [estimate, setEstimate] = useState(() => estimates.find(est => est.id === estimateId));
     const contact = contacts.find(c => c.id === estimate?.contactId);

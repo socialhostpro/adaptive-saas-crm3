@@ -10,7 +10,7 @@ interface CasesProps {
     contacts: Contact[];
     teamMembers: TeamMember[];
     mediaFiles: MediaFile[];
-    setMediaFiles: React.Dispatch<React.SetStateAction<MediaFile[]>>;
+    setMediaFiles?: React.Dispatch<React.SetStateAction<MediaFile[]>>;
     appContext: any;
 }
 
@@ -164,7 +164,13 @@ const CaseCard: React.FC<{ caseItem: Case; tasks: CaseTask[]; onClick: () => voi
 
 
 const Cases: React.FC<CasesProps> = (props) => {
-    const { contacts, teamMembers, mediaFiles, setMediaFiles, appContext } = props;
+  const {
+    contacts,
+    teamMembers,
+    mediaFiles,
+    setMediaFiles = () => {},
+    appContext
+  } = props;
 
     // Use global store for cases
     const cases = useGlobalStore(state => state.cases);

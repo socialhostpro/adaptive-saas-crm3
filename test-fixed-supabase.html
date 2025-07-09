@@ -79,11 +79,18 @@
             <button class="button" onclick="testDatabaseOperations()">Test Database Operations</button>
             <div id="db-output" class="output">Click to test database operations...</div>
         </div>
+        
+        <div class="test-section">
+            <h3>5. Supabase Storage Upload Test</h3>
+            <input type="file" id="upload-test-file" accept=".jpg,.jpeg,.png,.gif,.webp,.txt,.pdf,.csv" />
+            <button class="button" onclick="testSupabaseUpload()">Test Upload</button>
+            <div id="upload-output" class="output">Select a file and click to test upload...</div>
+        </div>
     </div>
 
     <script type="module">
         // Test the modular approach
-        import { supabase } from './lib/supabase.ts';
+        import { supabase } from './lib/supabaseClient.ts';
         import useAppStore from './hooks/useAppStore.ts';
 
         // Make available globally for button handlers
@@ -201,6 +208,34 @@
                 
             } catch (err) {
                 output.innerHTML += `❌ Database operations failed: ${err.message}\n`;
+                output.className = 'output error';
+            }
+        };
+
+        window.testSupabaseUpload = async function() {
+            const output = document.getElementById('upload-output');
+            const fileInput = document.getElementById('upload-test-file');
+            const file = fileInput.files[0];
+            output.innerHTML = '';
+            if (!file) {
+                output.innerHTML = '❌ Please select a file to upload.';
+                output.className = 'output error';
+                return;
+            }
+            output.innerHTML = 'Uploading...\n';
+            try {
+                const path = `test-uploads/${Date.now()}-${file.name}`;
+                const { error } = await supabase.storage.from('media').upload(path, file);
+                if (error) {
+                    output.innerHTML += `❌ Upload failed: ${error.message}`;
+                    output.className = 'output error';
+                } else {
+                    const publicUrl = supabase.storage.from('media').getPublicUrl(path).data.publicUrl;
+                    output.innerHTML += `✅ Upload successful!\nFile URL: <a href="${publicUrl}" target="_blank">${publicUrl}</a>`;
+                    output.className = 'output success';
+                }
+            } catch (err) {
+                output.innerHTML += `❌ Unexpected error: ${err.message}`;
                 output.className = 'output error';
             }
         };

@@ -1,6 +1,3 @@
-
-
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Invoice, InvoiceStatus, Contact, CompanyProfile } from '../types';
@@ -19,7 +16,7 @@ const InvoiceStatusBadge: React.FC<{ status: InvoiceStatus }> = ({ status }) => 
 };
 
 
-const PublicInvoicePage: React.FC<{ invoices: Invoice[], contacts: Contact[], companyProfile: CompanyProfile }> = ({ invoices, contacts, companyProfile }) => {
+const PublicInvoicePage: React.FC<{ invoices: Invoice[], contacts: Contact[], companyProfile?: CompanyProfile }> = ({ invoices, contacts, companyProfile = { name: '', address: '', city: '', state: '', zip: '', country: '', phone: '', website: '' } }) => {
     const { invoiceId } = useParams<{ invoiceId: string }>();
     const invoice = invoices.find(inv => inv.id === invoiceId);
     const contact = contacts.find(c => c.id === invoice?.contactId);

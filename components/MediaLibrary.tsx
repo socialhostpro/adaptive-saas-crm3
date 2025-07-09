@@ -9,7 +9,7 @@ import { useGlobalStore, MediaFileWithSync, SyncStatus } from '../hooks/useGloba
 
 interface MediaLibraryProps {
     mediaFiles: MediaFileWithSync[];
-    setMediaFiles: (files: MediaFileWithSync[]) => void;
+    setMediaFiles?: (files: MediaFileWithSync[]) => void;
     currentUser?: any;
     appContext: any;
 }
@@ -87,7 +87,14 @@ const MediaFileCard: React.FC<{ file: MediaFileWithSync, onClick: () => void }> 
     )
 }
 
-const MediaLibrary: React.FC<MediaLibraryProps> = ({ mediaFiles, setMediaFiles, currentUser, appContext }) => {
+const MediaLibrary: React.FC<MediaLibraryProps> = (props) => {
+  const {
+    mediaFiles,
+    setMediaFiles = () => {},
+    currentUser,
+    appContext
+  } = props;
+
     // Use global store for state management
     const { mediaFiles: globalMediaFiles, setMediaFiles: setGlobalMediaFiles, addMediaFile, updateMediaFile, removeMediaFile } = useGlobalStore();
     

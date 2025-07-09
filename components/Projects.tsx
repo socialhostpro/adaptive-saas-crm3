@@ -26,7 +26,7 @@ const ProjectStatusBadge: React.FC<{ status: ProjectStatus }> = ({ status }) => 
   return <span className={`${baseClasses} ${colorClasses}`}>{status}</span>;
 };
 
-const ProjectCard: React.FC<{ project: Project; tasks: ProjectTask[]; onClick: () => void }> = ({ project, tasks, onClick }) => {
+const ProjectCard: React.FC<{ project: ProjectWithSync; tasks: ProjectTask[]; onClick: () => void }> = ({ project, tasks, onClick }) => {
     const progress = useMemo(() => {
         const projectTasks = tasks.filter(t => t.projectId === project.id);
         if (projectTasks.length === 0) return 0;
@@ -36,6 +36,26 @@ const ProjectCard: React.FC<{ project: Project; tasks: ProjectTask[]; onClick: (
 
     return (
         <Card className="!p-0 flex flex-col cursor-pointer hover:shadow-lg dark:hover:bg-gray-700/40 transition-all duration-200" onClick={onClick}>
+            {/* Sync status indicator */}
+            <div className="absolute top-4 left-4 z-10">
+              {project._pendingDelete ? (
+                <span title="Pending Deletion" className="inline-flex items-center text-red-400 bg-red-50 dark:bg-red-900 rounded-full px-2 py-1 text-xs font-semibold opacity-70">
+                  🗑️ Deleting
+                </span>
+              ) : project.syncStatus === 'pending' ? (
+                <span title="Pending Sync" className="inline-flex items-center text-yellow-500 bg-yellow-50 dark:bg-yellow-900 rounded-full px-2 py-1 text-xs font-semibold">
+                  ⏳ Syncing
+                </span>
+              ) : project.syncStatus === 'error' ? (
+                <span title="Sync Error" className="inline-flex items-center text-red-500 bg-red-50 dark:bg-red-900 rounded-full px-2 py-1 text-xs font-semibold">
+                  ⚠️ Error
+                </span>
+              ) : (
+                <span title="Synced" className="inline-flex items-center text-green-500 bg-green-50 dark:bg-green-900 rounded-full px-2 py-1 text-xs font-semibold opacity-60">
+                  ✅ Synced
+                </span>
+              )}
+            </div>
             <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                     <h3 className="font-bold text-gray-900 dark:text-white pr-2">{project.name}</h3>
@@ -55,11 +75,11 @@ const ProjectCard: React.FC<{ project: Project; tasks: ProjectTask[]; onClick: (
             <div className="border-t border-gray-200 dark:border-gray-700 p-4 mt-auto bg-gray-50 dark:bg-gray-800/50 rounded-b-xl flex justify-between text-xs">
                 <div>
                     <span className="text-gray-500 dark:text-gray-400">Due: </span>
-                    <span className="font-medium text-gray-700 dark:text-gray-300">{new Date(project.deadline).toLocaleDateString()}</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">{project.deadline ? new Date(project.deadline).toLocaleDateString() : ''}</span>
                 </div>
                  <div>
                     <span className="text-gray-500 dark:text-gray-400">Budget: </span>
-                    <span className="font-medium text-gray-700 dark:text-gray-300">${project.budget.toLocaleString()}</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">{typeof project.budget === 'number' ? `$${project.budget.toLocaleString()}` : ''}</span>
                 </div>
             </div>
         </Card>

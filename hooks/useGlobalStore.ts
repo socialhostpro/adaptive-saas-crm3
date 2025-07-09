@@ -1,19 +1,19 @@
 import { create, StateCreator } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Project, ProjectTask, Contact, OpportunityWithSync, Task, TeamMember, SaaSSettings, EmailTemplate, TimeEntry, SupportTicket, MediaFile, Lead, Activity, Case, CaseTask, CaseNote, CaseHistoryEntry } from '../types';
+import { Project, ProjectTask, Contact, OpportunityWithSync, Task, TeamMember, SaaSSettings, EmailTemplate, TimeEntry, SupportTicket, MediaFile, Lead, Activity, Case, CaseTask, CaseNote, CaseHistoryEntry, Invoice, Estimate, Product, AIInsight, ContactWithSync } from '../types';
 
 // Extended types for offline sync
 export type SyncStatus = 'synced' | 'pending' | 'error';
-export type ProjectWithSync = Project & { syncStatus: SyncStatus };
+export type ProjectWithSync = Project & { syncStatus: SyncStatus; _pendingDelete?: boolean };
 export type ProjectTaskWithSync = ProjectTask & { syncStatus: SyncStatus };
-export type TaskWithSync = Task & { syncStatus: SyncStatus };
+export type TaskWithSync = Task & { syncStatus: SyncStatus; _pendingDelete?: boolean };
 export type TeamMemberWithSync = TeamMember & { syncStatus: SyncStatus };
 export type SaaSSettingsWithSync = SaaSSettings & { syncStatus: SyncStatus };
 export type EmailTemplateWithSync = EmailTemplate & { syncStatus: SyncStatus };
 export type TimeEntryWithSync = TimeEntry & { syncStatus: SyncStatus };
 export type SupportTicketWithSync = SupportTicket & { syncStatus: SyncStatus };
 export type MediaFileWithSync = MediaFile & { syncStatus: SyncStatus };
-export type LeadWithSync = Lead & { syncStatus: SyncStatus };
+export type LeadWithSync = Lead & { syncStatus: SyncStatus; _pendingDelete?: boolean };
 
 interface UserSettings {
   darkMode: boolean;
@@ -25,7 +25,7 @@ interface GlobalStoreState {
   role: string | null;
   subscriptionStatus: string | null;
   isInitialized: boolean;
-  contacts: Contact[];
+  contacts: ContactWithSync[];
   opportunities: OpportunityWithSync[];
   projects: ProjectWithSync[];
   projectTasks: ProjectTaskWithSync[];
@@ -42,13 +42,17 @@ interface GlobalStoreState {
   cases: Case[];
   currentUser?: TeamMember;
   caseTasks: CaseTask[];
+  invoices: Invoice[];
+  estimates: Estimate[];
+  products: Product[];
+  aiInsights: AIInsight[];
 
   setInitialized: (initialized: boolean) => void;
   setUser: (userId: string, role: string) => void;
   setSubscriptionStatus: (subscriptionStatus: string) => void;
-  setContacts: (contacts: Contact[]) => void;
-  addContact: (contact: Contact) => void;
-  updateContact: (contact: Contact) => void;
+  setContacts: (contacts: ContactWithSync[]) => void;
+  addContact: (contact: ContactWithSync) => void;
+  updateContact: (contact: ContactWithSync) => void;
   removeContact: (contactId: string) => void;
   setOpportunities: (opportunities: OpportunityWithSync[]) => void;
   addOpportunity: (opportunity: OpportunityWithSync) => void;
@@ -65,7 +69,7 @@ interface GlobalStoreState {
   addProjectTask: (task: ProjectTaskWithSync) => void;
   updateProjectTask: (task: ProjectTaskWithSync) => void;
   removeProjectTask: (taskId: string) => void;
-  setTasks: (tasks: TaskWithSync[]) => void;
+  setTasks: (tasks: TaskWithSync[] | ((prev: TaskWithSync[]) => TaskWithSync[])) => void;
   addTask: (task: TaskWithSync) => void;
   updateTask: (task: TaskWithSync) => void;
   removeTask: (taskId: string) => void;
@@ -104,159 +108,248 @@ interface GlobalStoreState {
   removeCaseTask: (taskId: string) => void;
   addCaseNote: (caseId: string, note: CaseNote) => void;
   addCaseHistory: (caseId: string, entry: CaseHistoryEntry) => void;
+  setInvoices: (invoices: Invoice[]) => void;
+  addInvoice: (invoice: Invoice) => void;
+  updateInvoice: (invoice: Invoice) => void;
+  removeInvoice: (invoiceId: string) => void;
+  setEstimates: (estimates: Estimate[] | ((prev: Estimate[]) => Estimate[])) => void;
+  addEstimate: (estimate: Estimate) => void;
+  updateEstimate: (estimate: Estimate) => void;
+  removeEstimate: (estimateId: string) => void;
+  setProducts: (products: Product[]) => void;
+  addProduct: (product: Product) => void;
+  updateProduct: (product: Product) => void;
+  removeProduct: (productId: string) => void;
+  setAiInsights: (aiInsights: AIInsight[]) => void;
 }
 
-const storeCreator: StateCreator<GlobalStoreState> = (set, get) => ({
-  userId: null,
-  role: null,
-  subscriptionStatus: null,
-  isInitialized: false,
-  contacts: [],
-  opportunities: [],
-  projects: [],
-  projectTasks: [],
-  tasks: [],
-  teamMembers: [],
-  userSettings: {
-    darkMode: false,
-  },
-  saasSettings: null,
-  emailTemplates: [],
-  timeEntries: [],
-  supportTickets: [],
-  mediaFiles: [],
-  leads: [],
-  activities: [],
-  cases: [],
-  currentUser: undefined,
-  caseTasks: [],
+const storeCreator: StateCreator<GlobalStoreState> = (set, get) => {
+  return {
+    userId: null,
+    role: null,
+    subscriptionStatus: null,
+    isInitialized: false,
+    contacts: [],
+    opportunities: [],
+    projects: [],
+    projectTasks: [],
+    tasks: [],
+    teamMembers: [],
+    userSettings: {
+      darkMode: false,
+    },
+    saasSettings: null,
+    emailTemplates: [],
+    timeEntries: [],
+    supportTickets: [],
+    mediaFiles: [],
+    leads: [],
+    activities: [],
+    cases: [],
+    currentUser: undefined,
+    caseTasks: [],
+    invoices: [],
+    estimates: [],
+    products: [],
+    aiInsights: [],
 
-  setInitialized: (initialized) => set({ isInitialized: initialized }),
-  setUser: (userId, role) => set({ userId, role }),
-  setSubscriptionStatus: (subscriptionStatus) => set({ subscriptionStatus }),
-  setContacts: (contacts) => set({ contacts }),
-  addContact: (contact) => set((state) => ({ contacts: [...state.contacts, contact] })),
-  updateContact: (contact) => set((state) => ({
-    contacts: state.contacts.map((c) => c.id === contact.id ? { ...c, ...contact } : c)
-  })),
-  removeContact: (contactId) => set((state) => ({
-    contacts: state.contacts.filter((c) => c.id !== contactId)
-  })),
-  setOpportunities: (opportunities) => set({ opportunities }),
-  addOpportunity: (opportunity) => set((state) => ({ opportunities: [...state.opportunities, opportunity] })),
-  updateOpportunity: (opportunity) => set((state) => ({
-    opportunities: state.opportunities.map((o) => o.id === opportunity.id ? { ...o, ...opportunity } : o)
-  })),
-  removeOpportunity: (opportunityId) => set((state) => ({
-    opportunities: state.opportunities.filter((o) => o.id !== opportunityId)
-  })),
-  markOpportunitySyncStatus: (opportunityId, status) => set((state) => ({
-    opportunities: state.opportunities.map((o) => o.id === opportunityId ? { ...o, syncStatus: status } : o)
-  })),
-  queueOpportunityUpdate: (opportunity) => { /* implementation */ },
-  processOpportunitySyncQueue: () => { /* implementation */ },
-  setProjects: (projects) => set({ projects }),
-  addProject: (project) => set((state) => ({ projects: [...state.projects, project] })),
-  updateProject: (project) => set((state) => ({
-    projects: state.projects.map((p) => p.id === project.id ? { ...p, ...project } : p)
-  })),
-  removeProject: (projectId) => set((state) => ({
-    projects: state.projects.filter((p) => p.id !== projectId)
-  })),
-  setProjectTasks: (tasks) => set({ projectTasks: tasks }),
-  addProjectTask: (task) => set((state) => ({ projectTasks: [...state.projectTasks, task] })),
-  updateProjectTask: (task) => set((state) => ({
-    projectTasks: state.projectTasks.map((t) => t.id === task.id ? { ...t, ...task } : t)
-  })),
-  removeProjectTask: (taskId) => set((state) => ({
-    projectTasks: state.projectTasks.filter((t) => t.id !== taskId)
-  })),
-  setTasks: (tasks) => set({ tasks }),
-  addTask: (task) => set((state) => ({ tasks: [...state.tasks, task] })),
-  updateTask: (task) => set((state) => ({
-    tasks: state.tasks.map((t) => t.id === task.id ? { ...t, ...task } : t)
-  })),
-  removeTask: (taskId) => set((state) => ({
-    tasks: state.tasks.filter((t) => t.id !== taskId)
-  })),
-  setTeamMembers: (members) => set({ teamMembers: members }),
-  addTeamMember: (member) => set((state) => ({ teamMembers: [...state.teamMembers, member] })),
-  updateTeamMember: (member) => set((state) => ({
-    teamMembers: state.teamMembers.map((m) => m.id === member.id ? { ...m, ...member } : m)
-  })),
-  removeTeamMember: (memberId) => set((state) => ({
-    teamMembers: state.teamMembers.filter((m) => m.id !== memberId)
-  })),
-  setUserSettings: (settings) => set((state) => ({
-    userSettings: { ...state.userSettings, ...settings }
-  })),
-  setSaasSettings: (settings) => set({ saasSettings: settings }),
-  setEmailTemplates: (templates) => set({ emailTemplates: templates }),
-  updateEmailTemplate: (template) => set((state) => ({
-    emailTemplates: state.emailTemplates.map((t) => t.id === template.id ? { ...t, ...template } : t)
-  })),
-  setTimeEntries: (entries) => set({ timeEntries: entries }),
-  addTimeEntry: (entry) => set((state) => ({ timeEntries: [...state.timeEntries, entry] })),
-  updateTimeEntry: (entry) => set((state) => ({
-    timeEntries: state.timeEntries.map((e) => e.id === entry.id ? { ...e, ...entry } : e)
-  })),
-  removeTimeEntry: (entryId) => set((state) => ({
-    timeEntries: state.timeEntries.filter((e) => e.id !== entryId)
-  })),
-  setSupportTickets: (tickets) => set({ supportTickets: tickets }),
-  addSupportTicket: (ticket) => set((state) => ({ supportTickets: [...state.supportTickets, ticket] })),
-  updateSupportTicket: (ticket) => set((state) => ({
-    supportTickets: state.supportTickets.map((t) => t.id === ticket.id ? { ...t, ...ticket } : t)
-  })),
-  removeSupportTicket: (ticketId) => set((state) => ({
-    supportTickets: state.supportTickets.filter((t) => t.id !== ticketId)
-  })),
-  setMediaFiles: (files) => set({ mediaFiles: files }),
-  addMediaFile: (file) => set((state) => ({ mediaFiles: [...state.mediaFiles, file] })),
-  updateMediaFile: (file) => set((state) => ({
-    mediaFiles: state.mediaFiles.map((f) => f.id === file.id ? { ...f, ...file } : f)
-  })),
-  removeMediaFile: (fileId) => set((state) => ({
-    mediaFiles: state.mediaFiles.filter((f) => f.id !== fileId)
-  })),
-  setLeads: (leads) => set({ leads }),
-  addLead: (lead) => set((state) => ({ leads: [...state.leads, lead] })),
-  updateLead: (lead) => set((state) => ({
-    leads: state.leads.map((l) => l.id === lead.id ? { ...l, ...lead } : l)
-  })),
-  removeLead: (leadId) => set((state) => ({
-    leads: state.leads.filter((l) => l.id !== leadId)
-  })),
-  setActivities: (activities) => set({ activities }),
-  setCases: (cases) => set({ cases }),
-  addCase: (caseItem) => set((state) => ({ cases: [...state.cases, caseItem] })),
-  updateCase: (caseItem) => set((state) => ({
-    cases: state.cases.map((c) => c.id === caseItem.id ? { ...c, ...caseItem } : c)
-  })),
-  removeCase: (caseId) => set((state) => ({
-    cases: state.cases.filter((c) => c.id !== caseId)
-  })),
-  setCaseTasks: (tasks) => set({ caseTasks: tasks }),
-  addCaseTask: (task) => set((state) => ({ caseTasks: [...state.caseTasks, task] })),
-  updateCaseTask: (task) => set((state) => ({
-    caseTasks: state.caseTasks.map((t) => t.id === task.id ? { ...t, ...task } : t)
-  })),
-  removeCaseTask: (taskId) => set((state) => ({
-    caseTasks: state.caseTasks.filter((t) => t.id !== taskId)
-  })),
-  addCaseNote: (caseId, note) => set((state) => ({
-    cases: state.cases.map((c) => c.id === caseId ? { ...c, notes: [note, ...(c.notes || [])] } : c)
-  })),
-  addCaseHistory: (caseId, entry) => set((state) => ({
-    cases: state.cases.map((c) => c.id === caseId ? { ...c, history: [entry, ...(c.history || [])] } : c)
-  })),
-});
+    setInitialized: (initialized) => {
+      set({ isInitialized: initialized });
+    },
+    setUser: (userId, role) => set({ userId, role }),
+    setSubscriptionStatus: (subscriptionStatus) => set({ subscriptionStatus }),
+    setContacts: (contacts) => set((state) => {
+      // Only update if contacts array is different
+      if (state.contacts === contacts) return {};
+      if (JSON.stringify(state.contacts) === JSON.stringify(contacts)) return {};
+      // Ensure all contacts are ContactWithSync
+      const safeContacts = contacts.map(c => ({ ...c, syncStatus: c.syncStatus as ('synced' | 'pending' | 'error' | undefined) }));
+      return { contacts: safeContacts };
+    }),
+    addContact: (contact) => {
+      set((state) => {
+        if (state.contacts.some((c) => c.id === contact.id)) return {};
+        const contactWithSync: ContactWithSync = { ...contact, syncStatus: 'pending' };
+        return { contacts: [...state.contacts, contactWithSync] };
+      });
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    updateContact: (contact) => {
+      set((state) => {
+        const idx = state.contacts.findIndex((c) => c.id === contact.id);
+        if (idx === -1) return {};
+        const updated = state.contacts.map((c) => c.id === contact.id ? { ...c, ...contact, syncStatus: 'pending' as const } : c);
+        if (JSON.stringify(state.contacts) === JSON.stringify(updated)) return {};
+        return { contacts: updated };
+      });
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    removeContact: (contactId) => {
+      set((state) => {
+        const updated = state.contacts.map((c) => c.id === contactId ? { ...c, syncStatus: 'pending' as const, _pendingDelete: true } : c);
+        if (JSON.stringify(state.contacts) === JSON.stringify(updated)) return {};
+        return { contacts: updated };
+      });
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    setOpportunities: (opportunities) => set({ opportunities }),
+    addOpportunity: (opportunity) => set((state) => ({ opportunities: [...state.opportunities, opportunity] })),
+    updateOpportunity: (opportunity) => set((state) => ({
+      opportunities: state.opportunities.map((o) => o.id === opportunity.id ? { ...o, ...opportunity } : o)
+    })),
+    removeOpportunity: (opportunityId) => set((state) => ({
+      opportunities: state.opportunities.filter((o) => o.id !== opportunityId)
+    })),
+    markOpportunitySyncStatus: (opportunityId, status) => set((state) => ({
+      opportunities: state.opportunities.map((o) => o.id === opportunityId ? { ...o, syncStatus: status } : o)
+    })),
+    queueOpportunityUpdate: (opportunity) => { /* implementation */ },
+    processOpportunitySyncQueue: () => { /* implementation */ },
+    setProjects: (projects) => set({ projects }),
+    addProject: (project) => {
+      const projectWithSync = { ...project, syncStatus: 'pending' as const };
+      set((state) => ({ projects: [...state.projects, projectWithSync] }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    updateProject: (project) => {
+      set((state) => ({
+        projects: state.projects.map((p) => p.id === project.id ? { ...p, ...project, syncStatus: 'pending' as const } : p)
+      }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    removeProject: (projectId) => {
+      set((state) => ({
+        projects: state.projects.map((p) => p.id === projectId ? { ...p, syncStatus: 'pending' as const, _pendingDelete: true } : p)
+      }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    setProjectTasks: (tasks) => set({ projectTasks: tasks }),
+    addProjectTask: (task) => set((state) => ({ projectTasks: [...state.projectTasks, task] })),
+    updateProjectTask: (task) => set((state) => ({
+      projectTasks: state.projectTasks.map((t) => t.id === task.id ? { ...t, ...task } : t)
+    })),
+    removeProjectTask: (taskId) => set((state) => ({
+      projectTasks: state.projectTasks.filter((t) => t.id !== taskId)
+    })),
+    setTasks: (tasksOrUpdater) =>
+      set((state) => ({
+        tasks:
+          typeof tasksOrUpdater === 'function'
+            ? tasksOrUpdater(state.tasks)
+            : tasksOrUpdater,
+      })),
+    addTask: (task) => {
+      const taskWithSync = { ...task, syncStatus: 'pending' as const };
+      set((state) => ({ tasks: [...state.tasks, taskWithSync] }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    updateTask: (task) => {
+      set((state) => ({
+        tasks: state.tasks.map((t) => t.id === task.id ? { ...t, ...task, syncStatus: 'pending' as const } : t)
+      }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    removeTask: (taskId) => {
+      set((state) => ({
+        tasks: state.tasks.map((t) => t.id === taskId ? { ...t, syncStatus: 'pending' as const, _pendingDelete: true } : t)
+      }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    setTeamMembers: (members) => set({ teamMembers: members }),
+    addTeamMember: (member) => set((state) => ({ teamMembers: [...state.teamMembers, member] })),
+    updateTeamMember: (member) => set((state) => ({
+      teamMembers: state.teamMembers.map((m) => m.id === member.id ? { ...m, ...member } : m)
+    })),
+    removeTeamMember: (memberId) => set((state) => ({
+      teamMembers: state.teamMembers.filter((m) => m.id !== memberId)
+    })),
+    setUserSettings: (settings) => set((state) => ({
+      userSettings: { ...state.userSettings, ...settings }
+    })),
+    setSaasSettings: (settings) => set({ saasSettings: settings }),
+    setEmailTemplates: (templates) => set({ emailTemplates: templates }),
+    updateEmailTemplate: (template) => set((state) => ({
+      emailTemplates: state.emailTemplates.map((t) => t.id === template.id ? { ...t, ...template } : t)
+    })),
+    setTimeEntries: (entries) => set({ timeEntries: entries }),
+    addTimeEntry: (entry) => set((state) => ({ timeEntries: [...state.timeEntries, entry] })),
+    updateTimeEntry: (entry) => set((state) => ({
+      timeEntries: state.timeEntries.map((e) => e.id === entry.id ? { ...e, ...entry } : e)
+    })),
+    removeTimeEntry: (entryId) => set((state) => ({
+      timeEntries: state.timeEntries.filter((e) => e.id !== entryId)
+    })),
+    setSupportTickets: (tickets) => set({ supportTickets: tickets }),
+    addSupportTicket: (ticket) => set((state) => ({ supportTickets: [...state.supportTickets, ticket] })),
+    updateSupportTicket: (ticket) => set((state) => ({
+      supportTickets: state.supportTickets.map((t) => t.id === ticket.id ? { ...t, ...ticket } : t)
+    })),
+    removeSupportTicket: (ticketId) => set((state) => ({
+      supportTickets: state.supportTickets.filter((t) => t.id !== ticketId)
+    })),
+    setMediaFiles: (files) => set({ mediaFiles: files }),
+    addMediaFile: (file) => set((state) => ({ mediaFiles: [...state.mediaFiles, file] })),
+    updateMediaFile: (file) => set((state) => ({
+      mediaFiles: state.mediaFiles.map((f) => f.id === file.id ? { ...f, ...file } : f)
+    })),
+    removeMediaFile: (fileId) => set((state) => ({
+      mediaFiles: state.mediaFiles.filter((f) => f.id !== fileId)
+    })),
+    setLeads: (leads) => set({ leads }),
+    addLead: (lead) => {
+      const leadWithSync = { ...lead, syncStatus: 'pending' as const };
+      set((state) => ({ leads: [...state.leads, leadWithSync] }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    updateLead: (lead) => {
+      set((state) => ({
+        leads: state.leads.map((l) => l.id === lead.id ? { ...l, ...lead, syncStatus: 'pending' as const } : l)
+      }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    removeLead: (leadId) => {
+      set((state) => ({
+        leads: state.leads.map((l) => l.id === leadId ? { ...l, syncStatus: 'pending' as const, _pendingDelete: true } : l)
+      }));
+      import('../lib/syncService').then(m => m.syncAllPending());
+    },
+    setActivities: (activities) => set({ activities }),
+    setCases: (cases) => set({ cases }),
+    addCase: (caseItem) => set((state) => ({ cases: [...state.cases, caseItem] })),
+    updateCase: (caseItem) => set((state) => ({
+      cases: state.cases.map((c) => c.id === caseItem.id ? { ...c, ...caseItem } : c)
+    })),
+    removeCase: (caseId) => set((state) => ({
+      cases: state.cases.filter((c) => c.id !== caseId)
+    })),
+    setCaseTasks: (tasks) => set({ caseTasks: tasks }),
+    addCaseTask: (task) => set((state) => ({ caseTasks: [...state.caseTasks, task] })),
+    updateCaseTask: (task) => set((state) => ({
+      caseTasks: state.caseTasks.map((t) => t.id === task.id ? { ...t, ...task } : t)
+    })),
+    removeCaseTask: (taskId) => set((state) => ({
+      caseTasks: state.caseTasks.filter((t) => t.id !== taskId)
+    })),
+    addCaseNote: (caseId, note) => set((state) => ({
+      cases: state.cases.map((c) => c.id === caseId ? { ...c, notes: [note, ...(c.notes || [])] } : c)
+    })),
+    addCaseHistory: (caseId, entry) => set((state) => ({
+      cases: state.cases.map((c) => c.id === caseId ? { ...c, history: [entry, ...(c.history || [])] } : c)
+    })),
+    setInvoices: (invoices) => set({ invoices }),
+    addInvoice: (invoice) => set((state) => ({ invoices: [...state.invoices, invoice] })),
+    updateInvoice: (invoice) => set((state) => ({
+      invoices: state.invoices.map((i) => i.id === invoice.id ? { ...i, ...invoice } : i)
+    })),
+    removeInvoice: (invoiceId) => set((state) => ({
+      invoices: state.invoices.filter((i) => i.id !== invoiceId)
+    })),
+  };
+};
 
 export const useGlobalStore = create<GlobalStoreState>()(
   persist(storeCreator, { 
     name: 'crm-global-store',
-    // For now, let's persist everything normally for debugging
-    // We can optimize this later
   })
 );
 

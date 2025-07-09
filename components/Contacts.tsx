@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Contact, TimeEntryStatus } from '../types';
+import { Contact, TimeEntryStatus, ContactWithSync } from '../types';
 import Card from './shared/Card';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import EmailModal from './EmailModal';
@@ -13,7 +13,7 @@ import LogTimeModal from './LogTimeModal';
 
 const Contacts: React.FC = () => {
   const { userId } = useGlobalStore();
-  const contacts = useGlobalStore(state => state.contacts);
+  const contacts = useGlobalStore(state => state.contacts as ContactWithSync[]);
   const addContact = useGlobalStore(state => state.addContact);
   const updateContact = useGlobalStore(state => state.updateContact);
   const removeContact = useGlobalStore(state => state.removeContact);
@@ -313,6 +313,33 @@ const Contacts: React.FC = () => {
                 role="button"
                 aria-label={`Open details for ${contact.name}`}
               >
+                {/* Sync status indicator */}
+                <div className="absolute top-4 left-4 z-10">
+                  {contact._pendingDelete ? (
+                    <span title="Pending Deletion" className="inline-flex items-center text-red-400 bg-red-50 dark:bg-red-900 rounded-full px-2 py-1 text-xs font-semibold opacity-70">
+                      🗑️ Deleting
+                    </span>
+                  ) : contact.syncStatus === 'pending' ? (
+                    <span title="Pending Sync" className="inline-flex items-center text-yellow-500 bg-yellow-50 dark:bg-yellow-900 rounded-full px-2 py-1 text-xs font-semibold">
+                      ⏳ Syncing
+                    </span>
+                  ) : contact.syncStatus === 'error' ? (
+                    <span title="Sync Error" className="inline-flex items-center text-red-500 bg-red-50 dark:bg-red-900 rounded-full px-2 py-1 text-xs font-semibold">
+                      ⚠️ Error
+                      <button
+                        className="ml-2 underline text-xs text-blue-600 dark:text-blue-300"
+                        title="Retry Sync"
+                        onClick={e => { e.stopPropagation(); handleRetrySync(); }}
+                      >
+                        Retry
+                      </button>
+                    </span>
+                  ) : (
+                    <span title="Synced" className="inline-flex items-center text-green-500 bg-green-50 dark:bg-green-900 rounded-full px-2 py-1 text-xs font-semibold opacity-60">
+                      ✅ Synced
+                    </span>
+                  )}
+                </div>
                 {/* Top row: Edit icon */}
                 <div className="absolute top-4 right-4 z-10">
                   <button
