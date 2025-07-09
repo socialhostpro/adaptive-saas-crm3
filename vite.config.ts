@@ -69,8 +69,8 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
           output: {
             manualChunks: {
-              'react-grid-layout': ['react-grid-layout'],
-              'supabase': ['@supabase/supabase-js']
+              'react-grid-layout': ['react-grid-layout']
+              // Removed 'supabase': ['@supabase/supabase-js'] to avoid breaking ESM/CJS interop
             }
           }
         }
