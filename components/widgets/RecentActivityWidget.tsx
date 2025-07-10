@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Activity, ActivityType } from '../../types';
 
@@ -25,7 +24,17 @@ const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ activities 
                     <ActivityIcon type={activity.type} />
                     <div className="ml-4 flex-1">
                         <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{activity.summary}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">With {activity.contactName} &middot; {activity.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">With {activity.contactName} &middot; {(() => {
+                            let dateObj;
+                            if (activity.timestamp instanceof Date) {
+                                dateObj = activity.timestamp;
+                            } else if (typeof activity.timestamp === 'string' || typeof activity.timestamp === 'number') {
+                                dateObj = new Date(activity.timestamp);
+                            } else {
+                                return '';
+                            }
+                            return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        })()}</p>
                     </div>
                 </div>
             ))}

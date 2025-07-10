@@ -73,6 +73,12 @@ const Login = () => {
       setUser(user.id, userRole);
       setSubscriptionStatus(subscription.status);
 
+      console.log('Login status:', {
+        userId: user.id,
+        role: userRole,
+        subscriptionStatus: subscription.status
+      });
+
       navigate('/dashboard');
     }
   };

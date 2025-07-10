@@ -10,10 +10,7 @@ export default defineConfig(({ mode }) => {
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(mode),
         global: 'globalThis',
-        'process.browser': true,
-        // Fix require is not defined
-        require: 'undefined',
-        module: '{}'
+        'process.browser': true
       },
       resolve: {
         alias: {
@@ -61,6 +58,7 @@ export default defineConfig(({ mode }) => {
         port: 5173
       },
       build: {
+        sourcemap: true,
         commonjsOptions: {
           include: [/node_modules/],
           transformMixedEsModules: true,

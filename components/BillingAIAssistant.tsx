@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { Invoice, Estimate } from '../types';
@@ -70,7 +69,7 @@ User Query: "${userInput}"
             });
 
             const aiResponseText = response.text;
-            setMessages(prev => [...prev, { sender: 'ai', text: aiResponseText }]);
+            setMessages(prev => [...prev, { sender: 'ai', text: aiResponseText || '' }]);
         } catch (error) {
             console.error("Error calling Gemini API:", error);
             setMessages(prev => [...prev, { sender: 'ai', text: "Sorry, I encountered an error. Please check the console or try again later." }]);
@@ -91,6 +90,7 @@ User Query: "${userInput}"
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl h-full max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
                 <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                     <div className="flex items-center gap-3">
+                        <img src="/img/sass-logo-dark-mode.png" alt="Logo" className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-900 object-contain" onError={e => (e.currentTarget.style.display = 'none')} />
                         <SparklesIcon className="h-6 w-6 text-primary-500" />
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">AI Billing Assistant</h2>
                     </div>

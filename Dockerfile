@@ -3,6 +3,7 @@ FROM node:20 AS build
 WORKDIR /app
 COPY . .
 RUN npm install
+RUN npm install @rollup/rollup-linux-x64-gnu --save-dev
 RUN npm run build
 
 # Use a lightweight image to serve static files

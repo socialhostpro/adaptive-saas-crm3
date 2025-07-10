@@ -26,6 +26,7 @@ const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose }) =>
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const addMediaFile = useGlobalStore((state) => state.addMediaFile);
+    const userId = useGlobalStore((state) => state.userId);
 
     useEffect(() => {
         if (isOpen) {
@@ -42,29 +43,57 @@ const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose }) =>
         setIsUploading(true);
         setErrorMsg(null);
         try {
-            // Generate a temporary ID and local URL
-            const tempId = 'temp-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
-            const tempUrl = URL.createObjectURL(file);
-            // Determine file_type enum
+            // Upload to Supabase Storage under user folder
+            const filePath = `${userId}/${Date.now()}-${file.name}`;
+            console.log('Uploading to Supabase Storage:', { bucket: 'media', filePath, file });
+            const { data: storageData, error: storageError } = await supabase.storage.from('media').upload(filePath, file);
+            if (storageError) {
+                console.error('Supabase Storage upload error:', storageError);
+                setErrorMsg('Failed to upload to storage: ' + storageError.message);
+                return;
+            }
+            console.log('Supabase Storage upload success:', storageData);
+            // Get public URL
+            const publicUrlResult = supabase.storage.from('media').getPublicUrl(filePath);
+            console.log('Public URL result:', publicUrlResult);
+            const { publicUrl } = publicUrlResult.data;
+            // Insert metadata to DB
             let file_type: 'image' | 'video' | 'document' | 'audio' | 'other' = 'other';
             if (file.type.startsWith('image/')) file_type = 'image';
             else if (file.type.startsWith('video/')) file_type = 'video';
             else if (file.type.startsWith('audio/')) file_type = 'audio';
             else if (file.type === 'application/pdf' || file.type === 'text/plain' || file.type === 'text/csv' || file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') file_type = 'document';
-            // Add to local state as pending
+            // Debug log for filename
+            console.log('Uploading file:', { formName: formData.name, fileName: file.name });
+            const safeName = formData.name && formData.name.trim() ? formData.name : (file.name && file.name.trim() ? file.name : `file_${Date.now()}`);
+            const { error: dbError } = await supabase.from('media_files').insert([
+                {
+                    name: safeName,
+                    aiDescription: formData.description || null,
+                    file_type: file_type,
+                    type: formData.type || file_type,
+                    url: publicUrl,
+                    size: file.size,
+                    uploaded_by: userId,
+                    uploadedAt: new Date().toISOString(),
+                }
+            ]);
+            if (dbError) {
+                setErrorMsg('Failed to save metadata: ' + dbError.message);
+                return;
+            }
             addMediaFile({
-                id: tempId,
-                file_name: file.name,
+                id: `${userId}-${Date.now()}`,
                 name: formData.name || file.name,
                 description: formData.description || null,
                 file_type: file_type,
                 type: formData.type || file_type,
-                url: tempUrl,
+                url: publicUrl,
                 size: file.size,
-                uploaded_by: null,
-                syncStatus: 'pending',
-                _localFile: file, // keep reference for sync
-                uploadedAt: new Date(), // ensure valid date
+                uploaded_by: userId,
+                syncStatus: 'synced',
+                _localFile: file,
+                uploadedAt: new Date(),
             });
             onClose();
         } finally {

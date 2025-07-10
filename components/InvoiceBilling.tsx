@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Invoice, InvoiceStatus, Estimate, EstimateStatus, Contact, Product, Payment, MediaFile } from '../types';
 import Card from './shared/Card';
 import CreateInvoiceModal from './CreateInvoiceModal';
@@ -11,6 +11,7 @@ import EditProductModal from './EditProductModal';
 import ShareLinkModal from './ShareLinkModal';
 import InvoiceEmailModal from './InvoiceEmailModal';
 import { supabase } from '../lib/supabaseClient';
+import { useGlobalStore } from '../hooks/useGlobalStore';
 
 interface BillingProps {
     invoices: Invoice[];
@@ -77,6 +78,8 @@ const Billing: React.FC<BillingProps> = (props) => {
     appContext
   } = props;
 
+    const userId = useGlobalStore((state) => state.userId);
+
     const [activeTab, setActiveTab] = useState<Tab>('invoices');
     const [isCreateInvoiceOpen, setCreateInvoiceOpen] = useState(false);
     const [isCreateEstimateOpen, setCreateEstimateOpen] = useState(false);
@@ -96,6 +99,17 @@ const Billing: React.FC<BillingProps> = (props) => {
     const [isEmailModalOpen, setEmailModalOpen] = useState(false);
     const [emailInvoice, setEmailInvoice] = useState<Invoice | null>(null);
     const [emailEstimate, setEmailEstimate] = useState<Estimate | null>(null);
+
+    useEffect(() => {
+      const fetchProducts = async () => {
+        if (!userId) return;
+        const { data, error } = await supabase.from('products').select('*').eq('user_id', userId);
+        if (!error && data) {
+          setProducts(data);
+        }
+      };
+      fetchProducts();
+    }, [userId, isCreateProductOpen]);
 
     const handleShare = (type: 'invoice' | 'estimate', id: string) => {
         const link = `${window.location.origin}${window.location.pathname}#/public/${type}/${id}`;
@@ -134,7 +148,9 @@ const Billing: React.FC<BillingProps> = (props) => {
     const handleCreateProduct = async (newProductData: Omit<Product, 'id'>) => {
         setLoading(true);
         setError(null);
-        const { data, error: insertError } = await supabase.from('products').insert([newProductData]).select();
+        // Add user_id to product data
+        const productWithUser = { ...newProductData, user_id: userId };
+        const { data, error: insertError } = await supabase.from('products').insert([productWithUser]).select();
         if (insertError) {
             setError('Failed to create product');
         } else if (data && data[0]) {

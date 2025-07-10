@@ -480,6 +480,14 @@ const AppContent: React.FC = () => {
     };
   }, []);
 
+  // Log login status on every page render
+  const userId = useGlobalStore((state) => state.userId);
+  const role = useGlobalStore((state) => state.role);
+  const subscriptionStatus = useGlobalStore((state) => state.subscriptionStatus);
+  useEffect(() => {
+    console.log('Login status (global):', { userId, role, subscriptionStatus });
+  }, [userId, role, subscriptionStatus]);
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Sidebar - visible by default on desktop, toggleable on mobile */}

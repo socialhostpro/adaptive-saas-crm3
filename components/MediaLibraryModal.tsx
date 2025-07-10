@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { MediaFile, MediaFileType } from '../types';
 import Card from './shared/Card';
@@ -14,7 +13,8 @@ const FileTypeIcon: React.FC<{ type: MediaFileType }> = ({ type }) => {
     const iconBaseClass = "h-8 w-8 text-white";
     if (type === 'image') return <div className="p-3 bg-pink-500 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" className={iconBaseClass} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>;
     if (type === 'video') return <div className="p-3 bg-indigo-500 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" className={iconBaseClass} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>;
-    return <div className="p-3 bg-teal-500 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" className={iconBaseClass} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>;
+    if (type === 'document') return <div className="p-3 bg-teal-500 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" className={iconBaseClass} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>;
+    return <div className="p-3 bg-gray-400 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" className={iconBaseClass} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg></div>;
 }
 
 const MediaFileCard: React.FC<{ file: MediaFile, onSelect: () => void }> = ({ file, onSelect }) => {
@@ -22,7 +22,7 @@ const MediaFileCard: React.FC<{ file: MediaFile, onSelect: () => void }> = ({ fi
         <Card onClick={onSelect} className="!p-0 flex flex-col group cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
             <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-t-xl flex items-center justify-center overflow-hidden">
                 {file.type === 'image' ? (
-                    <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
+                    <img src={file.url || '/favicon.ico'} alt={file.name} className="w-full h-full object-cover" onError={e => { e.currentTarget.src = '/favicon.ico'; }} />
                 ) : (
                     <FileTypeIcon type={file.type} />
                 )}
@@ -69,6 +69,7 @@ const MediaLibraryModal: React.FC<MediaLibraryModalProps> = ({ isOpen, onClose, 
                             className="w-full md:w-72 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm"
                         />
                         <select 
+                            title="Filter by file type"
                             value={typeFilter}
                             onChange={e => setTypeFilter(e.target.value as any)}
                             className="w-full md:w-48 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm"

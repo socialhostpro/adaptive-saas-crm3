@@ -12,7 +12,7 @@ import LogActivityModal from './LogActivityModal';
 import LogTimeModal from './LogTimeModal';
 
 const Contacts: React.FC = () => {
-  const { userId } = useGlobalStore();
+  const userId = useGlobalStore((state: any) => state.userId);
   const contacts = useGlobalStore(state => state.contacts as ContactWithSync[]);
   const addContact = useGlobalStore(state => state.addContact);
   const updateContact = useGlobalStore(state => state.updateContact);

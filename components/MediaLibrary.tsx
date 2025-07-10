@@ -11,8 +11,6 @@ import type { LocalMediaFile } from '../hooks/useGlobalStore';
 interface MediaLibraryProps {
     mediaFiles: MediaFileWithSync[];
     setMediaFiles?: (files: MediaFileWithSync[]) => void;
-    currentUser?: any;
-    appContext: any;
 }
 
 const FileTypeIcon: React.FC<{ type: MediaFileType }> = ({ type }) => {
@@ -70,7 +68,12 @@ const MediaFileCard: React.FC<{ file: LocalMediaFile, onClick: () => void, onSyn
         >
             <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-t-xl flex items-center justify-center overflow-hidden">
                 {file.type === 'image' ? (
-                    <img src={file.url} alt={file.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <img 
+                        src={file.url || '/img/sass-logo-dark-mode.png'} 
+                        alt={file.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                        onError={e => (e.currentTarget.src = '/img/sass-logo-dark-mode.png')}
+                    />
                 ) : (
                     <FileTypeIcon type={file.type} />
                 )}
@@ -97,12 +100,10 @@ const MediaLibrary: React.FC<MediaLibraryProps> = (props) => {
   const {
     mediaFiles,
     setMediaFiles = () => {},
-    currentUser,
-    appContext
   } = props;
 
     // Use global store for state management
-    const { mediaFiles: globalMediaFiles, setMediaFiles: setGlobalMediaFiles, addMediaFile, updateMediaFile, removeMediaFile } = useGlobalStore();
+    const { addMediaFile, updateMediaFile, removeMediaFile } = useGlobalStore();
     
     // Ephemeral UI state
     const [loading, setLoading] = useState(false);
@@ -431,6 +432,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = (props) => {
                         value={typeFilter}
                         onChange={e => setTypeFilter(e.target.value as any)}
                         className="w-full md:w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm"
+                        title="Filter by file type"
                     >
                         <option value="all">All File Types</option>
                         <option value="image">Images</option>
@@ -481,7 +483,6 @@ const MediaLibrary: React.FC<MediaLibraryProps> = (props) => {
             <UploadFileModal
                 isOpen={isUploadModalOpen}
                 onClose={() => setUploadModalOpen(false)}
-                onSubmit={handleUpload}
             />
             
             <MediaFileDetailsModal
