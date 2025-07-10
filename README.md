@@ -4,13 +4,30 @@ This is a comprehensive, AI-powered Customer Relationship Management (CRM) appli
 
 ## Features
 
-- **Dashboard:** A customizable, widget-based dashboard providing a 360-degree view of your business.
-- **Contact Management:** A centralized repository for all your customer information.
-- **Sales Pipeline:** Visualize and manage your sales process from lead to close with dedicated modules for Leads and Opportunities.
-- **Task & Project Management:** Create, assign, and track tasks and projects to stay organized.
-- **Billing & Invoicing:** Generate and manage invoices and estimates.
-- **AI Assistant:** A powerful, context-aware assistant to help you manage your data and automate tasks.
-- **And much more...**
+- **Dashboard:** A customizable, widget-based dashboard providing a 360-degree view of your business.  
+  **Status:** [x] Done
+- **Contact Management:** A centralized repository for all your customer information.  
+  **Status:** [x] Done
+- **Sales Pipeline:** Visualize and manage your sales process from lead to close with dedicated modules for Leads and Opportunities.  
+  **Status:** [x] Done
+- **Task & Project Management:** Create, assign, and track tasks and projects to stay organized.  
+  **Status:** [x] Tasks: [x] Done, Projects: [ ] In Progress
+- **Billing & Invoicing:** Generate and manage invoices and estimates.  
+  **Status:** [x] Invoices: [x] Done, Estimates: [ ] In Progress
+- **AI Assistant:** A powerful, context-aware assistant to help you manage your data and automate tasks.  
+  **Status:** [x] Core AI: [x] Done, Advanced AI: [ ] In Progress
+- **Media File Upload/Storage:** Upload, sync, and manage media files with Supabase Storage.  
+  **Status:** [x] Done
+- **Team & Role Management:** Manage team members, roles, and permissions.  
+  **Status:** [x] Done
+- **Customer Portal:** Dedicated portal for customer access to CRM, projects, cases, landing pages, creative.  
+  **Status:** [ ] In Progress
+- **Stripe Billing Integration:** Subscription and payment management via Stripe.  
+  **Status:** [x] Core Stripe: [x] Done, Webhooks/Edge Functions: [ ] In Progress
+- **Realtime & Offline Sync:** Live updates and offline support.  
+  **Status:** [x] Done
+- **Role-Based Access Control:** Fine-grained security for all features.  
+  **Status:** [x] Done
 
 ## Run Locally
 
@@ -102,10 +119,14 @@ Use these in your components to keep UI in sync with backend changes in real tim
 ## Next Steps & To-Do
 
 For a detailed plan of the remaining work, please see the [Project_Guide.md](Project_Guide.md). This includes:
-- Full backend integration with Supabase.
-- Implementation of user authentication.
-- Refactoring of all data handling to use Supabase instead of mock data.
-- Securing AI functionality with Supabase Edge Functions.
+- Full backend integration with Supabase.  
+  **Status:** [ ] In Progress
+- Implementation of user authentication.  
+  **Status:** [x] Done
+- Refactoring of all data handling to use Supabase instead of mock data.  
+  **Status:** [ ] In Progress
+- Securing AI functionality with Supabase Edge Functions.  
+  **Status:** [ ] In Progress
 
 # Deployment triggered: 2025-07-08  
 This line was added to trigger a redeploy to Cloudflare.
