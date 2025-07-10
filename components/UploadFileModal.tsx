@@ -24,6 +24,7 @@ const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.txt', '.p
 const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({ ...getInitialState(), description: '' });
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const addMediaFile = useGlobalStore((state) => state.addMediaFile);
 
     useEffect(() => {
@@ -38,54 +39,37 @@ const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose }) =>
     };
 
     const handleFileUpload = async (file: File) => {
+        setIsUploading(true);
         setErrorMsg(null);
-        // Check authentication
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) {
-            setErrorMsg('Auth error: ' + (userError.message || 'Unknown error'));
-            return;
-        }
-        if (!user) {
-            setErrorMsg('You must be logged in to upload files.');
-            return;
-        }
-        // Determine file_type enum
-        let file_type: 'image' | 'video' | 'document' | 'audio' | 'other' = 'other';
-        if (file.type.startsWith('image/')) file_type = 'image';
-        else if (file.type.startsWith('video/')) file_type = 'video';
-        else if (file.type.startsWith('audio/')) file_type = 'audio';
-        else if (file.type === 'application/pdf' || file.type === 'text/plain' || file.type === 'text/csv' || file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') file_type = 'document';
-
-        const { data, error } = await supabase.storage.from('media').upload(`uploads/${file.name}`, file);
-        if (error) {
-            setErrorMsg('File upload failed: ' + (error.message || 'Unknown error'));
-            return;
-        }
-        const publicUrl = supabase.storage.from('media').getPublicUrl(`uploads/${file.name}`).data.publicUrl;
-        if (!publicUrl) {
-            setErrorMsg('Failed to retrieve file URL.');
-            return;
-        }
-        // Insert into media_files table
-        const { data: inserted, error: insertError } = await supabase.from('media_files').insert([
-            {
+        try {
+            // Generate a temporary ID and local URL
+            const tempId = 'temp-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            const tempUrl = URL.createObjectURL(file);
+            // Determine file_type enum
+            let file_type: 'image' | 'video' | 'document' | 'audio' | 'other' = 'other';
+            if (file.type.startsWith('image/')) file_type = 'image';
+            else if (file.type.startsWith('video/')) file_type = 'video';
+            else if (file.type.startsWith('audio/')) file_type = 'audio';
+            else if (file.type === 'application/pdf' || file.type === 'text/plain' || file.type === 'text/csv' || file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') file_type = 'document';
+            // Add to local state as pending
+            addMediaFile({
+                id: tempId,
                 file_name: file.name,
                 name: formData.name || file.name,
                 description: formData.description || null,
                 file_type: file_type,
                 type: formData.type || file_type,
-                url: publicUrl,
+                url: tempUrl,
                 size: file.size,
-                uploaded_by: user.id,
-            }
-        ]).select();
-        if (insertError || !inserted || !inserted[0]) {
-            setErrorMsg('Failed to save file metadata: ' + (insertError?.message || 'Unknown error'));
-            return;
+                uploaded_by: null,
+                syncStatus: 'pending',
+                _localFile: file, // keep reference for sync
+                uploadedAt: new Date(), // ensure valid date
+            });
+            onClose();
+        } finally {
+            setIsUploading(false);
         }
-        // Add to global state
-        addMediaFile({ ...inserted[0], syncStatus: 'synced' });
-        onClose();
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -153,7 +137,19 @@ const UploadFileModal: React.FC<UploadFileModalProps> = ({ isOpen, onClose }) =>
                 </main>
                 <footer className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
                     <button type="button" onClick={onClose} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Cancel</button>
-                    <button type="submit" className="bg-primary-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">Add to Library</button>
+                    <button type="submit" className="bg-primary-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center min-w-[120px]" disabled={isUploading}>
+                        {isUploading ? (
+                            <span className="flex items-center gap-2">
+                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                                Uploading...
+                            </span>
+                        ) : (
+                            'Add to Library'
+                        )}
+                    </button>
                 </footer>
             </form>
         </div>

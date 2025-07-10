@@ -15,6 +15,14 @@ export type SupportTicketWithSync = SupportTicket & { syncStatus: SyncStatus };
 export type MediaFileWithSync = MediaFile & { syncStatus: SyncStatus };
 export type LeadWithSync = Lead & { syncStatus: SyncStatus; _pendingDelete?: boolean };
 
+// Extend MediaFileWithSync for local-only fields
+export type LocalMediaFile = MediaFileWithSync & {
+  _localFile?: File;
+  description?: string;
+  file_type?: string;
+  size?: number;
+};
+
 interface UserSettings {
   darkMode: boolean;
   // Add more persistent user settings here

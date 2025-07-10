@@ -6,6 +6,7 @@ import MediaFileDetailsModal from './MediaFileDetailsModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { supabase } from '../lib/supabaseClient';
 import { useGlobalStore, MediaFileWithSync, SyncStatus } from '../hooks/useGlobalStore';
+import type { LocalMediaFile } from '../hooks/useGlobalStore';
 
 interface MediaLibraryProps {
     mediaFiles: MediaFileWithSync[];
@@ -39,13 +40,13 @@ const FileTypeIcon: React.FC<{ type: MediaFileType }> = ({ type }) => {
     );
 }
 
-const MediaFileCard: React.FC<{ file: MediaFileWithSync, onClick: () => void }> = ({ file, onClick }) => {
+const MediaFileCard: React.FC<{ file: LocalMediaFile, onClick: () => void, onSync: (file: LocalMediaFile) => void }> = ({ file, onClick, onSync }) => {
     const getSyncStatusBadge = () => {
         switch (file.syncStatus) {
             case 'pending':
                 return (
                     <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                        Syncing...
+                        Pending
                     </div>
                 );
             case 'error':
@@ -59,11 +60,10 @@ const MediaFileCard: React.FC<{ file: MediaFileWithSync, onClick: () => void }> 
                 return null;
         }
     };
-
     return (
         <Card 
             onClick={() => {
-                console.log('MediaFileCard clicked:', file.name);
+                if (file.syncStatus === 'pending') return; // Don't open details for unsynced
                 onClick();
             }} 
             className="!p-0 flex flex-col group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative"
@@ -74,13 +74,19 @@ const MediaFileCard: React.FC<{ file: MediaFileWithSync, onClick: () => void }> 
                 ) : (
                     <FileTypeIcon type={file.type} />
                 )}
-                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 {getSyncStatusBadge()}
+                {file.syncStatus === 'pending' && (
+                    <button
+                        className="absolute bottom-2 right-2 bg-primary-600 text-white text-xs px-3 py-1 rounded shadow hover:bg-primary-700"
+                        onClick={e => { e.stopPropagation(); onSync(file); }}
+                    >Sync</button>
+                )}
             </div>
             <div className="p-3">
                 <p className="font-semibold text-sm truncate text-gray-800 dark:text-gray-200">{file.name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {(file.uploadedAt instanceof Date ? file.uploadedAt : new Date(file.uploadedAt)).toLocaleDateString()}
+                    {file.uploadedAt instanceof Date ? file.uploadedAt.toLocaleDateString() : new Date(file.uploadedAt || Date.now()).toLocaleDateString()}
                 </p>
             </div>
         </Card>
@@ -233,21 +239,46 @@ const MediaLibrary: React.FC<MediaLibraryProps> = (props) => {
         setDeleteModalOpen(true);
     };
 
-    // DELETE media file (state-only until sync is working)
+    // DELETE media file (Supabase sync)
     const handleConfirmDelete = async () => {
         if (!selectedFile) return;
-        
         setError(null);
         setLoading(true);
-        
-        // Remove from state immediately
-        removeMediaFile(selectedFile.id);
-        setDeleteModalOpen(false);
-        setSelectedFile(null);
-        setLoading(false);
-        
-        // TODO: Add actual Supabase sync later
-        console.log('File deleted (state-only):', selectedFile.name);
+        try {
+            // If file is not yet synced (temp id), just remove from local state
+            if (selectedFile.id.startsWith('temp-')) {
+                removeMediaFile(selectedFile.id);
+                setDeleteModalOpen(false);
+                setSelectedFile(null);
+                return;
+            }
+            // Remove from Supabase Storage
+            if (selectedFile.url) {
+                const url = new URL(selectedFile.url);
+                const path = decodeURIComponent(url.pathname.replace(/^\/storage\/v1\/object\/media\//, ''));
+                const { error: storageError } = await supabase.storage.from('media').remove([path]);
+                if (storageError) {
+                    setError('Failed to delete from storage: ' + storageError.message);
+                    setLoading(false);
+                    return;
+                }
+            }
+            // Remove from database
+            const { error: dbError } = await supabase.from('media_files').delete().eq('id', selectedFile.id);
+            if (dbError) {
+                setError('Failed to delete from database: ' + dbError.message);
+                setLoading(false);
+                return;
+            }
+            // Remove from state
+            removeMediaFile(selectedFile.id);
+            setDeleteModalOpen(false);
+            setSelectedFile(null);
+        } catch (err) {
+            setError('Delete failed: ' + (err instanceof Error ? err.message : String(err)));
+        } finally {
+            setLoading(false);
+        }
     };
 
     // UPDATE media file (state-only until sync is working)
@@ -261,6 +292,64 @@ const MediaLibrary: React.FC<MediaLibraryProps> = (props) => {
         
         // TODO: Add actual Supabase sync later
         console.log('File updated (state-only):', updatedFile);
+    };
+
+    // SYNC media file (upload to Supabase, update DB, update state)
+    const handleSyncFile = async (file: LocalMediaFile) => {
+        setError(null);
+        setLoading(true);
+        try {
+            if (!file._localFile) {
+                setError('No local file found for sync.');
+                return;
+            }
+            // Check authentication
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                setError('You must be logged in to sync files.');
+                return;
+            }
+            // Generate unique path
+            const uniqueName = `${Date.now()}_${Math.floor(Math.random()*10000)}_${file._localFile.name}`;
+            const uploadPath = `uploads/${uniqueName}`;
+            // Upload to Supabase Storage
+            const { data, error } = await supabase.storage.from('media').upload(uploadPath, file._localFile);
+            if (error) {
+                setError('File upload failed: ' + (error.message || 'Unknown error'));
+                updateMediaFile({ ...file, syncStatus: 'error' });
+                return;
+            }
+            const uploadedPath = data?.path || uploadPath;
+            const publicUrl = supabase.storage.from('media').getPublicUrl(uploadedPath).data.publicUrl;
+            if (!publicUrl) {
+                setError('Failed to retrieve file URL.');
+                updateMediaFile({ ...file, syncStatus: 'error' });
+                return;
+            }
+            // Insert into media_files table
+            const { data: inserted, error: insertError } = await supabase.from('media_files').insert([
+                {
+                    file_name: file.name,
+                    name: file.name,
+                    description: file.description || null,
+                    file_type: file.file_type || file.type,
+                    type: file.type,
+                    url: publicUrl,
+                    size: file.size,
+                    uploaded_by: user.id,
+                }
+            ]).select();
+            if (insertError || !inserted || !inserted[0]) {
+                setError('Failed to save file metadata: ' + (insertError?.message || 'Unknown error'));
+                updateMediaFile({ ...file, syncStatus: 'error' });
+                return;
+            }
+            // Update local state: remove temp, add real
+            removeMediaFile(file.id);
+            addMediaFile({ ...inserted[0], syncStatus: 'synced' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Documentation:
@@ -351,13 +440,9 @@ const MediaLibrary: React.FC<MediaLibraryProps> = (props) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
-                    {filteredFiles.map((file: MediaFileWithSync) => {
-                        return (
-                            <div key={file.id} className="relative">
-                                <MediaFileCard file={file} onClick={() => handleOpenFileDetails(file)} />
-                            </div>
-                        );
-                    })}
+                    {filteredFiles.map((file) => (
+                        <MediaFileCard key={file.id} file={file as LocalMediaFile} onClick={() => handleOpenFileDetails(file as LocalMediaFile)} onSync={handleSyncFile} />
+                    ))}
                 </div>
                 
                 <div className="mt-4 text-sm text-gray-500">

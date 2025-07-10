@@ -103,7 +103,7 @@ const Team: React.FC<TeamProps> = ({ timeEntries, onStartDM, onViewAllActivities
     // Initial data loading (only if teamMembers is empty)
     useEffect(() => {
         const fetchTeamMembers = async () => {
-            if (teamMembers.length > 0 || loading) return; // Skip if already loaded
+            if (teamMembers.length > 0) return; // Skip if already loaded
             
             setLoading(true);
             setError(null);
@@ -130,7 +130,7 @@ const Team: React.FC<TeamProps> = ({ timeEntries, onStartDM, onViewAllActivities
         };
 
         fetchTeamMembers();
-    }, [teamMembers.length, setTeamMembers, loading]);
+    }, [teamMembers.length, setTeamMembers]);
 
     const handleViewProfile = (member: TeamMemberWithSync) => {
         setSelectedMember(member);

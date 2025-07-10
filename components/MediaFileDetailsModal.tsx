@@ -146,7 +146,10 @@ const MediaFileDetailsModal: React.FC<MediaFileDetailsModalProps> = ({ isOpen, o
                                 <div className="text-sm">
                                     <p className="text-gray-500 dark:text-gray-400">Uploaded On</p>
                                     <p className="text-gray-900 dark:text-white font-medium">
-                                        {(file.uploadedAt instanceof Date ? file.uploadedAt : new Date(file.uploadedAt)).toLocaleString()}
+                                        {(() => {
+                                            const date = file.uploadedAt instanceof Date ? file.uploadedAt : new Date(file.uploadedAt);
+                                            return isNaN(date.getTime()) ? 'Not available' : date.toLocaleString();
+                                        })()}
                                     </p>
                                 </div>
                                 <div>
