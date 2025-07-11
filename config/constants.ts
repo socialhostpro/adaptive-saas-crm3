@@ -67,3 +67,7 @@ export const DOMAIN_STATUS = {
 // PWA Manifest and Service Worker registration
 // Add this to your main entry (e.g., index.tsx) and public/manifest.json
 // See README for details
+
+// Vite HMR (hot reload) is disabled for local development
+// To stop auto-refresh, add this to vite.config.ts:
+// export default { server: { hmr: false } }

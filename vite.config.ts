@@ -51,9 +51,7 @@ export default defineConfig(({ mode }) => {
       },
       server: {
         // Fix WebSocket issues
-        hmr: {
-          overlay: false
-        },
+        hmr: false,
         host: true,
         port: 5173
       },
