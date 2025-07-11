@@ -10,21 +10,6 @@ const navLinkGroups = {
     { to: '/calendar', label: 'Calendar', icon: <CalendarIcon /> },
     { to: '/tasks', label: 'All Tasks', icon: <TasksIcon /> },
   ],
-  creatives: [
-    { to: '/creatives/image-generation', label: 'Image Generation', icon: <ImageGenerationIcon /> },
-    { to: '/creatives/gallery', label: 'Image Gallery', icon: <GalleryIcon /> },
-    { to: '/creatives/copy-generation', label: 'Copy Generation', icon: <CopyGenerationIcon /> },
-    { to: '/creatives/video-generation', label: 'Video Generation', icon: <VideoGenerationIcon /> },
-  ],
-  communications: [
-    { to: '/ai-landing-page-builder', label: 'AI Landing Page Builder', icon: <AILandingPageIcon /> },
-    { to: '/newsletter', label: 'Newsletter', icon: <NewsletterIcon /> },
-    { to: '/bots/website-chat', label: 'Website Chat Bot', icon: <WebsiteBotIcon /> },
-    { to: '/bots/phone', label: 'Phone Bot', icon: <PhoneBotIcon /> },
-    { to: '/bots/form', label: 'Form Bot', icon: <FormBotIcon /> },
-    { to: '/form-builder', label: 'Form Builder', icon: <FormBuilderIcon /> },
-    { to: '/bot-analytics', label: 'Bot Analytics', icon: <AnalyticsIcon /> },
-  ],
   crm: [
     { to: '/opportunities', label: 'Opportunities', icon: <OpportunitiesIcon /> },
     { to: '/leads', label: 'Leads', icon: <LeadsIcon /> },
@@ -49,6 +34,17 @@ const navLinkGroups = {
   tools: [
     { to: '/reporting', label: 'Reporting', icon: <ReportingIcon /> },
     { to: '/support', label: 'Support', icon: <SupportIcon /> },
+    { to: '/creatives/image-generation', label: 'Image Generation', icon: <ImageGenerationIcon /> },
+    { to: '/creatives/gallery', label: 'Image Gallery', icon: <GalleryIcon /> },
+    { to: '/creatives/copy-generation', label: 'Copy Generation', icon: <CopyGenerationIcon /> },
+    { to: '/creatives/video-generation', label: 'Video Generation', icon: <VideoGenerationIcon /> },
+    { to: '/ai-landing-page-builder', label: 'AI Landing Page Builder', icon: <AILandingPageIcon /> },
+    { to: '/newsletter', label: 'Newsletter', icon: <NewsletterIcon /> },
+    { to: '/bots/website-chat', label: 'Website Chat Bot', icon: <WebsiteBotIcon /> },
+    { to: '/bots/phone', label: 'Phone Bot', icon: <PhoneBotIcon /> },
+    { to: '/bots/form', label: 'Form Bot', icon: <FormBotIcon /> },
+    { to: '/form-builder', label: 'Form Builder', icon: <FormBuilderIcon /> },
+    { to: '/bot-analytics', label: 'Bot Analytics', icon: <AnalyticsIcon /> },
   ],
   account: [
     { to: '/company', label: 'Company Settings', icon: <CompanyIcon /> }
@@ -60,8 +56,6 @@ const navLinkGroups = {
 };
 
 const sectionTitles: { [key: string]: string } = {
-  creatives: "Creatives",
-  communications: "Communications",
   crm: "CRM",
   management: "Management",
   assets: "Assets",
