@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 RUN npm install
 RUN npm install @rollup/rollup-linux-x64-gnu --save-dev
-RUN echo "Forcing a new build at $(date)"
+# The build script in package.json will now print the env vars
 RUN npm run build
 
 # Use a lightweight image to serve static files
