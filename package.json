@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "echo '--- VITE ENV VARS ---' && printenv | grep VITE_ && echo '--- STARTING BUILD ---' && vite build",
+    "build": "if [ -z \"$VITE_SUPABASE_URL\" ] || [ -z \"$VITE_SUPABASE_ANON_KEY\" ]; then echo 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY'; exit 1; fi && echo '--- VITE ENV VARS ---' && printenv | grep VITE_ && echo '--- STARTING BUILD ---' && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
