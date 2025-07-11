@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -9,8 +9,33 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
-  const { sessionId } = useAuth(); // Use sessionId for all user actions
+  const { session, sessionId } = useAuth(); // Use sessionId for all user actions
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function hydrateUserState() {
+      if (session && session.user) {
+        const user = session.user;
+        // Fetch profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        // Fetch subscription
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', user.id)
+          .single();
+        const { setUser, setSubscriptionStatus } = useGlobalStore.getState();
+        setUser(user.id, profile?.role || 'User');
+        setSubscriptionStatus(subscription?.status || null);
+        navigate('/dashboard');
+      }
+    }
+    hydrateUserState();
+  }, [session, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
