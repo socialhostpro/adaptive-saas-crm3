@@ -112,12 +112,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, mediaFiles, teamMe
     <>
       {/* Overlay */}
       <div 
-        className={`fixed inset-0 bg-black/60 z-40 md:hidden transition-opacity no-print ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-black/60 z-40 lg:hidden transition-opacity no-print ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setIsOpen(false)}
       ></div>
 
       {/* Sidebar */}
-      <div className={`fixed top-0 left-0 h-full w-64 bg-gray-900 text-white flex flex-col p-4 z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} no-print`}>
+      <div className={`fixed top-0 left-0 h-full w-64 bg-gray-900 text-white flex flex-col p-4 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} no-print`}>
         <div className="flex items-center justify-center mb-6">
           <picture>
             <source media="(max-width: 767px)" srcSet="/img/sass-logo-dark-mode.png" />
@@ -191,6 +191,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, mediaFiles, teamMe
            <button
              onClick={async () => {
                await supabase.auth.signOut();
+               const { setUser, setSubscriptionStatus } = require('../hooks/useGlobalStore').useGlobalStore.getState();
+               setUser(null, null);
+               setSubscriptionStatus(null);
                window.location.href = '#/login';
              }}
              className="w-full flex items-center px-3 py-2.5 text-sm text-gray-300 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-colors duration-200 group"
