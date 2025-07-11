@@ -4,6 +4,9 @@ WORKDIR /app
 COPY . .
 RUN npm install
 RUN npm install @rollup/rollup-linux-x64-gnu --save-dev
+
+# CORRECT PLACEMENT: Invalidate cache BEFORE the build command
+RUN echo "Forcing a new build at $(date)"
 RUN npm run build
 
 # Use a lightweight image to serve static files
