@@ -80,9 +80,6 @@ const initialLayout: Layout[] = [
     { i: 'recent-activity', x: 6, y: 6, w: 6, h: 3, minW: 3, minH: 3 },
 ];
 
-const initialWidgetIds = initialLayout.map(item => item.i);
-
-
 const AppContent: React.FC = () => {
   // Dark mode state management
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -145,7 +142,11 @@ const AppContent: React.FC = () => {
     aiInsights,
     setAiInsights: setGlobalAiInsights,
     isInitialized,
-    setInitialized
+    setInitialized,
+    dashboardLayout,
+    setDashboardLayout,
+    activeWidgetIds,
+    setActiveWidgetIds,
   } = useGlobalStore();
 
   // Fetch all business data from Supabase on first load
@@ -203,9 +204,6 @@ const AppContent: React.FC = () => {
     fetchAllData();
   }, [isInitialized]);
 
-  const [dashboardLayout, setDashboardLayout] = useState<Layout[]>(initialLayout);
-  const [activeWidgetIds, setActiveWidgetIds] = useState<string[]>(initialWidgetIds);
-  
   // Chat popup state
   const [isChatPopupOpen, setIsChatPopupOpen] = useState(false);
   
@@ -306,29 +304,32 @@ const AppContent: React.FC = () => {
 
   const handleLayoutChange = (newLayout: Layout[]) => {
       setDashboardLayout(newLayout);
+      // Optionally, sync to Supabase here
   };
 
   const addWidget = (widgetId: string) => {
       const widgetToAdd = ALL_WIDGETS.find(w => w.id === widgetId);
       if (!widgetToAdd) return;
-
-      setActiveWidgetIds(prev => [...prev, widgetId]);
-      setDashboardLayout(prev => [
-          ...prev,
+      setActiveWidgetIds([...activeWidgetIds, widgetId]);
+      setDashboardLayout([
+          ...dashboardLayout,
           {
               i: widgetId,
-              x: (prev.length * 4) % 12, // Cascade new widgets
-              y: Infinity, // Puts it at the bottom
+              x: (dashboardLayout.length * 4) % 12,
+              y: Infinity,
               w: widgetToAdd.minW || 4,
               h: widgetToAdd.minH || 2,
               minW: widgetToAdd.minW,
               minH: widgetToAdd.minH,
           }
       ]);
+      // Optionally, sync to Supabase here
   };
 
   const removeWidget = (widgetId: string) => {
-      setActiveWidgetIds(prev => prev.filter(id => id !== widgetId));
+      setActiveWidgetIds(activeWidgetIds.filter(id => id !== widgetId));
+      setDashboardLayout(dashboardLayout.filter(l => l.i !== widgetId));
+      // Optionally, sync to Supabase here
   };
 
 
@@ -336,127 +337,6 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const isPublicPage = location.pathname.startsWith('/public/') || ['/login', '/signup', '/forgot-password', '/reset-password'].some(path => location.pathname.startsWith(path));
   const isChatPage = ['/chat', '/team-chat'].includes(location.pathname);
-
-  const calendarEvents: CalendarEvent[] = useMemo(() => {
-    const events: CalendarEvent[] = [];
-
-    tasks.forEach(task => {
-        const startDate = new Date(task.dueDate);
-        startDate.setHours(0,0,0,0);
-        events.push({
-            id: `task-${task.id}`,
-            title: task.title,
-            start: startDate,
-            end: startDate,
-            type: 'task',
-            link: '#/tasks',
-            data: task,
-        });
-    });
-
-    invoices.forEach(invoice => {
-        const startDate = new Date(invoice.dueDate);
-        startDate.setHours(0,0,0,0);
-        events.push({
-            id: `invoice-${invoice.id}`,
-            title: `Invoice ${invoice.invoiceNumber} Due`,
-            start: startDate,
-            end: startDate,
-            type: 'invoice',
-            link: '#/billing',
-            data: invoice,
-        });
-    });
-    
-    estimates.forEach(estimate => {
-        const startDate = new Date(estimate.expiryDate);
-        startDate.setHours(0,0,0,0);
-        events.push({
-            id: `estimate-${estimate.id}`,
-            title: `Estimate ${estimate.estimateNumber} Expires`,
-            start: startDate,
-            end: startDate,
-            type: 'estimate',
-            link: '#/billing',
-            data: estimate,
-        });
-    });
-    
-    opportunities.forEach(opportunity => {
-        if (opportunity.closeDate) {
-            const startDate = new Date(opportunity.closeDate);
-            startDate.setHours(0,0,0,0);
-            events.push({
-                id: `opportunity-${opportunity.id}`,
-                title: `Deal: ${opportunity.title}`,
-                start: startDate,
-                end: startDate,
-                type: 'opportunity',
-                link: '#/opportunities',
-                data: opportunity,
-            });
-        }
-    });
-    
-    projects.forEach(project => {
-        const startDate = new Date(project.deadline);
-        startDate.setHours(0,0,0,0);
-        events.push({
-            id: `project-${project.id}`,
-            title: `Project Deadline: ${project.name}`,
-            start: startDate,
-            end: startDate,
-            type: 'project',
-            link: '#/projects',
-            data: project,
-        });
-    });
-    
-    cases.forEach(c => {
-        const openDate = new Date(c.openDate);
-        openDate.setHours(0,0,0,0);
-        events.push({
-            id: `case-open-${c.id}`,
-            title: `Case Opened: ${c.name}`,
-            start: openDate,
-            end: openDate,
-            type: 'case',
-            link: '#/cases',
-            data: c,
-        });
-        
-        if (c.closeDate) {
-            const closeDate = new Date(c.closeDate);
-            closeDate.setHours(0,0,0,0);
-             events.push({
-                id: `case-close-${c.id}`,
-                title: `Case Closed: ${c.name}`,
-                start: closeDate,
-                end: closeDate,
-                type: 'case',
-                link: '#/cases',
-                data: c,
-            });
-        }
-    });
-
-    activities.forEach(activity => {
-        if (activity.type === ActivityType.Meeting) {
-            events.push({
-                id: `activity-${activity.id}`,
-                title: `Meeting: ${activity.summary}`,
-                start: new Date(activity.timestamp),
-                end: activity.endTime ? new Date(activity.endTime) : new Date(activity.timestamp),
-                type: 'meeting',
-                link: '#/activities',
-                data: activity,
-            });
-        }
-    });
-
-    return events;
-  }, [tasks, invoices, estimates, opportunities, projects, activities, cases]);
-
 
   // Error boundary state
   const [error, setError] = useState<string | null>(null);
@@ -495,7 +375,7 @@ const AppContent: React.FC = () => {
         isOpen={isSidebarOpen} 
         setIsOpen={setIsSidebarOpen} 
         mediaFiles={mediaFiles}
-        teamMembers={teamMembers}
+        teamMembers={teamMembers.map(m => ({...m, syncStatus: m.syncStatus || 'synced'}))}
         setTeamMembers={setGlobalTeamMembers}
         toggleDarkMode={toggleDarkMode}
         isDarkMode={isDarkMode}
@@ -530,7 +410,7 @@ const AppContent: React.FC = () => {
                   /></ProtectedRoute>} />
                 <Route path="/calendar" element={<Calendar currentUser={currentUser} />} />
                 <Route path="/opportunities" element={<Opportunities 
-                  opportunities={opportunities}
+                  opportunities={opportunities.map(o => ({...o, syncStatus: o.syncStatus || 'synced'}))}
                   setOpportunities={setGlobalOpportunities}
                   contacts={contacts}
                   teamMembers={teamMembers}
@@ -656,7 +536,7 @@ const AppContent: React.FC = () => {
                 <Route path="/bots/form" element={<ProtectedRoute><FormBot /></ProtectedRoute>} />
                 <Route path="/form-builder" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
                 <Route path="/bot-analytics" element={<ProtectedRoute><BotAnalytics /></ProtectedRoute>} />
-                <Route path="*" element={<div style={{color: 'red', padding: 24}}>No route matched. If you see this, your routes are not working.</div>} />
+                <Route path="*" element={<div className="text-red-500 p-6">No route matched. If you see this, your routes are not working.</div>} />
               </Routes>
             </main>
             

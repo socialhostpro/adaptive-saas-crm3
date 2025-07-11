@@ -54,6 +54,8 @@ interface GlobalStoreState {
   estimates: Estimate[];
   products: Product[];
   aiInsights: AIInsight[];
+  dashboardLayout: any[];
+  activeWidgetIds: string[];
 
   setInitialized: (initialized: boolean) => void;
   setUser: (userId: string, role: string) => void;
@@ -129,6 +131,8 @@ interface GlobalStoreState {
   updateProduct: (product: Product) => void;
   removeProduct: (productId: string) => void;
   setAiInsights: (aiInsights: AIInsight[]) => void;
+  setDashboardLayout: (layout: any[]) => void;
+  setActiveWidgetIds: (ids: string[]) => void;
 }
 
 const storeCreator: StateCreator<GlobalStoreState> = (set, get) => {
@@ -160,6 +164,8 @@ const storeCreator: StateCreator<GlobalStoreState> = (set, get) => {
     estimates: [],
     products: [],
     aiInsights: [],
+    dashboardLayout: [],
+    activeWidgetIds: [],
 
     setInitialized: (initialized) => {
       set({ isInitialized: initialized });

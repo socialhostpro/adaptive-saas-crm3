@@ -51,6 +51,14 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
     const { allWidgets, activeWidgetIds, layout, onLayoutChange, addWidget, removeWidget, currentUser, appContext, ...dataProps } = props;
     const [isAddModalOpen, setAddModalOpen] = useState(false);
 
+    // Detect mobile view
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    React.useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const activeWidgets = allWidgets.filter(w => activeWidgetIds.includes(w.id));
     const currentLayout = layout.filter(l => activeWidgetIds.includes(l.i));
 
@@ -113,8 +121,8 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
                 onLayoutChange={onLayoutChange}
                 cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                 rowHeight={100}
-                isDraggable={true}
-                isResizable={true}
+                isDraggable={!isMobile}
+                isResizable={!isMobile}
                 draggableHandle=".group"
             >
                 {generateDOM()}
