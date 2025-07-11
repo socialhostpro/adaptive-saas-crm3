@@ -2,8 +2,6 @@
 FROM node:20 AS build
 WORKDIR /app
 COPY . .
-COPY .env.production .env.production
-RUN cat .env.production
 RUN npm install
 RUN npm install @rollup/rollup-linux-x64-gnu --save-dev
 RUN echo "Forcing a new build at $(date)"
