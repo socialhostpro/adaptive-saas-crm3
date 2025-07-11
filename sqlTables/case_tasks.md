@@ -1,6 +1,6 @@
-# case_tasks.sql
+# ARCHIVED: case_tasks.sql
 
-This file contains the schema and seed data for the `case_tasks` table. It stores tasks that are specifically linked to a legal case.
+This table has been replaced by the unified `tasks` table. See Project_Guide.md for details.
 
 ```sql
 -- Ensure task_status enum exists

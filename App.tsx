@@ -165,9 +165,12 @@ const AppContent: React.FC = () => {
           // Fetch and set projects
           const { data: projectsData } = await supabase.from('projects').select('*');
           if (projectsData) setGlobalProjects(projectsData);
-          // Fetch and set projectTasks
-          const { data: projectTasksData } = await supabase.from('project_tasks').select('*');
+          // Fetch and set projectTasks from unified tasks table
+          const { data: projectTasksData } = await supabase.from('tasks').select('*').eq('type', 'project');
           if (projectTasksData) setGlobalProjectTasks(projectTasksData);
+          // Fetch and set caseTasks from unified tasks table
+          const { data: caseTasksData } = await supabase.from('tasks').select('*').eq('type', 'case');
+          if (caseTasksData) setGlobalCaseTasks(caseTasksData);
           // Fetch and set tasks
           const { data: tasksData } = await supabase.from('tasks').select('*');
           if (tasksData) setGlobalTasks(tasksData);
@@ -180,9 +183,6 @@ const AppContent: React.FC = () => {
           // Fetch and set cases
           const { data: casesData } = await supabase.from('cases').select('*');
           if (casesData) setGlobalCases(casesData);
-          // Fetch and set caseTasks
-          const { data: caseTasksData } = await supabase.from('case_tasks').select('*');
-          if (caseTasksData) setGlobalCaseTasks(caseTasksData);
           // Fetch and set emailTemplates
           const { data: emailTemplatesData } = await supabase.from('email_templates').select('*');
           if (emailTemplatesData) setGlobalEmailTemplates(emailTemplatesData);

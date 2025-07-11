@@ -204,20 +204,36 @@ const _syncAllPending = async () => {
       useGlobalStore.getState().updateTeamMember({ ...member, syncStatus: 'error' });
     }
   }
-  // Project Tasks
+  // Unified Project and Case Tasks
   const projectTasks = useGlobalStore.getState().projectTasks;
-  for (const task of projectTasks.filter((t: ProjectTaskWithSync) => t.syncStatus === 'pending' || t.syncStatus === 'error')) {
+  const caseTasks = useGlobalStore.getState().caseTasks;
+  // Handle project tasks
+  for (const task of projectTasks.filter((t: any) => t.syncStatus === 'pending' || t.syncStatus === 'error')) {
     try {
       if (task.id.startsWith('temp-')) {
-        const { data, error } = await supabase.from('project_tasks').insert([{ ...task, syncStatus: undefined }]).select();
+        const insertObj = {
+          ...task,
+          type: 'project',
+          project_id: task.projectId,
+          case_id: null,
+          syncStatus: undefined
+        };
+        const { data, error } = await supabase.from('tasks').insert([insertObj]).select();
         if (!error && data && data[0]) {
           useGlobalStore.getState().removeProjectTask(task.id);
-          useGlobalStore.getState().addProjectTask({ ...data[0], syncStatus: 'synced' });
+          useGlobalStore.getState().addTask({ ...data[0], syncStatus: 'synced' });
         } else {
           useGlobalStore.getState().updateProjectTask({ ...task, syncStatus: 'error' });
         }
       } else {
-        const { error } = await supabase.from('project_tasks').update({ ...task, syncStatus: undefined }).eq('id', task.id);
+        const updateObj = {
+          ...task,
+          type: 'project',
+          project_id: task.projectId,
+          case_id: null,
+          syncStatus: undefined
+        };
+        const { error } = await supabase.from('tasks').update(updateObj).eq('id', task.id);
         if (!error) {
           useGlobalStore.getState().updateProjectTask({ ...task, syncStatus: 'synced' });
         } else {
@@ -226,6 +242,43 @@ const _syncAllPending = async () => {
       }
     } catch {
       useGlobalStore.getState().updateProjectTask({ ...task, syncStatus: 'error' });
+    }
+  }
+  // Handle case tasks
+  for (const task of caseTasks.filter((t: any) => t.syncStatus === 'pending' || t.syncStatus === 'error')) {
+    try {
+      if (task.id.startsWith('temp-')) {
+        const insertObj = {
+          ...task,
+          type: 'case',
+          project_id: null,
+          case_id: task.caseId,
+          syncStatus: undefined
+        };
+        const { data, error } = await supabase.from('tasks').insert([insertObj]).select();
+        if (!error && data && data[0]) {
+          useGlobalStore.getState().removeCaseTask(task.id);
+          useGlobalStore.getState().addTask({ ...data[0], syncStatus: 'synced' });
+        } else {
+          useGlobalStore.getState().updateCaseTask({ ...task, syncStatus: 'error' });
+        }
+      } else {
+        const updateObj = {
+          ...task,
+          type: 'case',
+          project_id: null,
+          case_id: task.caseId,
+          syncStatus: undefined
+        };
+        const { error } = await supabase.from('tasks').update(updateObj).eq('id', task.id);
+        if (!error) {
+          useGlobalStore.getState().updateCaseTask({ ...task, syncStatus: 'synced' });
+        } else {
+          useGlobalStore.getState().updateCaseTask({ ...task, syncStatus: 'error' });
+        }
+      }
+    } catch {
+      useGlobalStore.getState().updateCaseTask({ ...task, syncStatus: 'error' });
     }
   }
   // Support Tickets

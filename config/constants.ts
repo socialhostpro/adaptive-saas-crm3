@@ -1,7 +1,7 @@
 // Application Constants
 export const APP_CONFIG = {
   // Base URLs
-  HOME_URL: 'https://app.imaginecapital.ai',
+  HOME_URL: 'https://crm.imaginecapital.ai',
   API_BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
   
   // Company Information

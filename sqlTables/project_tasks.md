@@ -1,6 +1,6 @@
-# project_tasks.sql
+# ARCHIVED: project_tasks.sql
 
-This file contains the schema and seed data for the `project_tasks` table. It stores tasks that are specifically linked to a project.
+This table has been replaced by the unified `tasks` table. See Project_Guide.md for details.
 
 ```sql
 -- Ensure task_status enum exists

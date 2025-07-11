@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "if [ -z \"$VITE_SUPABASE_URL\" ] || [ -z \"$VITE_SUPABASE_ANON_KEY\" ]; then echo 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY'; exit 1; fi && echo '--- VITE ENV VARS ---' && printenv | grep VITE_ && echo '--- STARTING BUILD ---' && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite preview"
   },
   "dependencies": {
     "@google/genai": "^1.7.0",

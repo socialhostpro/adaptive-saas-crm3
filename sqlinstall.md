@@ -464,39 +464,7 @@ CREATE TABLE IF NOT EXISTS public.ai_insights (
 );
 ALTER TABLE public.ai_insights ENABLE ROW LEVEL SECURITY;
 
--- CASE TASKS TABLE
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'task_status_enum') THEN
-        CREATE TYPE public.task_status_enum AS ENUM ('To Do', 'In Progress', 'Completed');
-    END IF;
-END$$;
-CREATE TABLE IF NOT EXISTS public.case_tasks (
-    id TEXT PRIMARY KEY,
-    case_id TEXT NOT NULL,
-    title TEXT NOT NULL,
-    assignee_id TEXT NOT NULL,
-    due_date DATE NOT NULL,
-    status public.task_status_enum NOT NULL
-);
-ALTER TABLE public.case_tasks ENABLE ROW LEVEL SECURITY;
-
--- PROJECT TASKS TABLE
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'task_status_enum') THEN
-        CREATE TYPE public.task_status_enum AS ENUM ('To Do', 'In Progress', 'Completed');
-    END IF;
-END$$;
-CREATE TABLE IF NOT EXISTS public.project_tasks (
-    id TEXT PRIMARY KEY,
-    project_id TEXT NOT NULL,
-    title TEXT NOT NULL,
-    assignee_id TEXT NOT NULL,
-    due_date DATE NOT NULL,
-    status public.task_status_enum NOT NULL
-);
-ALTER TABLE public.project_tasks ENABLE ROW LEVEL SECURITY;
+-- REMOVED: Legacy project_tasks and case_tasks tables. Use unified tasks table instead.
 
 -- TIME ENTRY STATUS ENUM
 DO $$

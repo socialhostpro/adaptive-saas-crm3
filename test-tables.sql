@@ -36,9 +36,12 @@ INSERT INTO cases (id, title, contact_id) VALUES (test_case_id, 'Test Case', tes
 test_activity_id := gen_random_uuid();
 INSERT INTO activities (id, type, summary, contact_id) VALUES (test_activity_id, 'Call', 'Test Activity', test_contact_id);
 
--- 10. Test insert for tasks
-test_task_id := gen_random_uuid();
-INSERT INTO tasks (id, title, contact_id) VALUES (test_task_id, 'Test Task', test_contact_id);
+-- 10. Test insert for tasks (unified)
+INSERT INTO tasks (id, type, project_id, case_id, title, description, status, due_date, created_at)
+VALUES (gen_random_uuid(), 'project', gen_random_uuid(), NULL, 'Test Project Task', 'Test project task description', 'open', NOW() + INTERVAL '7 days', NOW());
+
+INSERT INTO tasks (id, type, project_id, case_id, title, description, status, due_date, created_at)
+VALUES (gen_random_uuid(), 'case', NULL, gen_random_uuid(), 'Test Case Task', 'Test case task description', 'open', NOW() + INTERVAL '7 days', NOW());
 
 -- 11. Test insert for products
 test_product_id := gen_random_uuid();
