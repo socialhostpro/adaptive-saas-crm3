@@ -129,6 +129,7 @@ const Login = () => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
+          {/* Removed company name text for mobile, logo only */}
           <h2 className="text-3xl font-extrabold text-center text-white mb-2">Sign in to your account</h2>
           <p className="text-center text-gray-300 mb-6">Welcome back! Please enter your details.</p>
         </div>
