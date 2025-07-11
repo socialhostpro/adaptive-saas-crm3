@@ -63,3 +63,7 @@ export const DOMAIN_STATUS = {
   VERIFIED: 'verified',
   FAILED: 'failed',
 } as const;
+
+// PWA Manifest and Service Worker registration
+// Add this to your main entry (e.g., index.tsx) and public/manifest.json
+// See README for details

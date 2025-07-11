@@ -1,0 +1,26 @@
+{
+  "name": "Imagine Capital CRM",
+  "short_name": "CRM",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a2540",
+  "description": "Imagine Capital CRM Progressive Web App",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48 64x64 128x128 256x256 512x512",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/img/saas-logo-light.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/sass-logo-dark-mode.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
